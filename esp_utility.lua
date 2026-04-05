@@ -185,16 +185,34 @@ function ESP_Utility:_GetDistance()
 	return magnitude(HRP.Position, self.Object.Position)
 end
 
-function ESP_Utility:_SetTextPosition(DrawingObject, Index)
+function ESP_Utility:_SetTextPosition(DrawingObject, Y_Offset)
 	local Session = self.Session
-	local LineSpacing = 14 -- Pixels between each line
-	local Padding = 10     -- Initial gap from the top of the box
+	local FontSize = DrawingObject.Size or 20
+	local Padding = 5
 
-	local FinalY = Session.TopY - Padding - (Index * LineSpacing)
+	local textLength = 0 
+	for line in string.gmatch(DrawingObject.Text, "[^\n]+") do
+		local length = #line
+		if length > textLength then
+			textLength = length
+		end
+	end
 
-	DrawingObject.Position = Vector2.new(Session.CenterX, FinalY)
+
+	-- 1. Manual X Centering 
+	-- We approximate width: Average char is about half the height wide
+
+	local estimatedWidth = textLength * (FontSize * 0.45) 
+	local manualCenterX = Session.CenterX - (estimatedWidth / 2)
+
+	-- 2. Upward Y Calculation
+	-- As Y_Offset increases (0, 1, 5, 6), this value gets smaller (higher on screen)
+	local FinalY = Session.TopY - Padding - ((Y_Offset + 1) * FontSize)
+
+	-- 3. Apply Position
+	DrawingObject.Center = false 
+	DrawingObject.Position = Vector2.new(manualCenterX, FinalY)
 end
-
 
 function ESP_Utility:_Update()
 	if not self:_IsAlive() or not self.ObjectType then 
@@ -244,7 +262,7 @@ function ESP_Utility:_Update()
 				DrawingObject.Text = Callback()
 			end
 
-			self:_SetTextPosition(DrawingObject, Index) 
+			self:_SetTextPosition(DrawingObject, Data.Y_Offset) 
 		end
 	end
 
@@ -261,26 +279,48 @@ function ESP_Utility:_CreateSquare()
 
 end
 
-function ESP_Utility:AddText(Reference, Color, Value, Callback)
-	if self.Drawings[Reference.."Text"] then return end 
+function ESP_Utility:AddText(Reference, Color, Value, Callback, CustomIndex)
+	local keyName = Reference .. "Text"
+	if self.Drawings[keyName] then return end
 
-	local textCount = 0
-	for k, _ in pairs(self.Drawings) do
-		if string.find(k, "Text") then
-			textCount = textCount + 1
+	if not self.DrawingOrder then
+		self.DrawingOrder = {}
+	end
+
+	-- 1. Calculate the NEW item's line count first
+	local currentText = tostring((Callback and Callback()) or Value or "")
+	local _, newlineCount = string.gsub(currentText, "\n", "")
+	local currentLineCount = newlineCount + 1
+
+	-- 2. Calculate the Start Offset by summing the HEIGHT (LineCount) of previous items
+	local totalLineHeightSoFar = 0
+	for _, existingKey in self.DrawingOrder do
+		local data = self.Drawings[existingKey]
+		if data and data.LineCount then
+			totalLineHeightSoFar = totalLineHeightSoFar + data.LineCount
+			--print("TOTAL SO FAR: ", totalLineHeightSoFar, existingKey)
 		end
 	end
 
+	-- 3. Assign the offset
+	local assignedOffset = CustomIndex or totalLineHeightSoFar + currentLineCount - 1
+
+	-- 4. Create drawing
 	local NewText = Drawing.new("Text")
-	NewText.Text = Value or "Provide a value (3rd arg) or callback (4th arg)"
-	NewText.Center = true
-	NewText.Outline = true 
-	NewText.Color = Color or Color3.fromRGB(200,200,200)
-	self.Drawings[Reference.."Text"] = {
+	NewText.Text = currentText
+	NewText.Center = false
+	NewText.Outline = true
+	NewText.Color = Color or Color3.fromRGB(200, 200, 200)
+
+	-- 5. Store both the Offset (where it starts) and the LineCount (how big it is)
+	self.Drawings[keyName] = {
 		Drawing = NewText,
 		Function = Callback or nil,
-		Index = textCount,
+		Y_Offset = assignedOffset,
+		LineCount = currentLineCount -- CRITICAL: Store this so the NEXT item knows where to start
 	}
+
+	table.insert(self.DrawingOrder, keyName)
 end
 
 function ESP_Utility:BuildVisualTracker()
@@ -292,7 +332,6 @@ function ESP_Utility:BuildVisualTracker()
 
 	local NameString = self.Name..(self.ObjectType == "Model" and " [MODEL]" or "")
 	self:AddText("Name", self.Color, NameString)
-
 end
 
 function ESP_Utility:Destroy()
@@ -319,5 +358,6 @@ UpdateThread = RunService.RenderStepped:Connect(function(dt)
 end)
 
 notify("ESP thread started", "ESP_Utility", 3)
+
 _G.ESP_Utility = ESP_Utility
 return ESP_Utility
