@@ -208,6 +208,8 @@ UpdateThread = RunService.RenderStepped:Connect(function(dt)
     end 
 end)
 
+notify("ESP thread started", "ESP_Utility", 3)
+
 return ESP_Utility
 
 
