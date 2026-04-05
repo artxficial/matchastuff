@@ -12,13 +12,81 @@ local function magnitude(p1, p2)
 	return math.sqrt(dx*dx + dy*dy + dz*dz)
 end
 
-local ClassTypeMap = {
-	["MeshPart"] = "Single",
-	["UnionOperation"] = "Single",
-	["Part"] = "Single",
+local BasePartTypes = {
+	["Part"] = "BasePart",
+	["MeshPart"] = "BasePart",
+	["UnionOperation"] = "BasePart",
+	["Model"] = "Model",
 }
 
+local function IsValidObject(Object)
+	if type(Object) == "userdata" and Object and Object.ClassName then 
+		local Type = BasePartTypes[Object.ClassName]
+		return Type
+	end
+
+	return nil
+end
+
+local function GetObjectFromModel(Model)
+	local CommonNames = {"HumanoidRootPart","Root", "RootPart", "Core"}
+
+
+	-- 1. Try to find a standard Root Part first
+	local Children = Model:GetChildren()
+
+	for _, Name in CommonNames do
+		for _, Child in Children do
+			-- Convert the current child's name to lowercase for comparison
+			if string.lower(Child.Name) == string.lower(Name) and BasePartTypes[Child.ClassName] == "BasePart" then
+				return Child
+			end
+		end
+	end
+
+	-- 2. If its a model try its PrimaryPart
+	if Model.ClassName == "Model" then 
+		local PrimaryPart = Model.PrimaryPart
+		return PrimaryPart
+	end
+
+	-- 3. Fallback: Find the largest part by volume
+	local LargestPart = nil
+	local MaxVolume = 0
+
+	for _, Child in Model:GetChildren() do	
+		if BasePartTypes[Child.ClassName] then
+			-- Volume = Size.X * Size.Y * Size.Z
+			local Volume = Child.Size.X * Child.Size.Y * Child.Size.Z
+			if Volume > MaxVolume then
+				MaxVolume = Volume
+				LargestPart = Child
+			end
+		end
+	end
+
+	return LargestPart
+end
+
 function ESP_Utility.NewTracker(Object, CustomName, Color)
+	local ObjectType = IsValidObject(Object)
+	if not ObjectType then 
+		warn("[ERROR] The tracker only accepts models, baseparts, meshparts, or unions. || Received: ", Object) 
+		return 
+	end 
+
+
+	if ObjectType == "Model" then 
+		--	print("[MODEL] Model received")
+		local Model = Object
+		CustomName = CustomName or Object.Name
+		Object = GetObjectFromModel(Model)
+		if Object == nil then 
+			warn(string.format("[ERROR] Could not add Model: %s because it had no valid parts inside of it", Model.Name)) 
+			return
+		end 
+	end
+
 	if TrackersToUpdate[Object.Address] then
 		--	print("Already exists")
 		return TrackersToUpdate[Object.Address]
@@ -29,36 +97,14 @@ function ESP_Utility.NewTracker(Object, CustomName, Color)
 	self.Object = Object
 	self.Color = Color or Color3.fromRGB(255,255,255)
 	self.Drawings = {}
+	self.ObjectType = ObjectType
 
-	self.ObjectType = self:_GetObjectType()
 	self:BuildVisualTracker()
 
 	TrackersToUpdate[Object.Address] = self
 	return self
 end
 
-function ESP_Utility:_GetObjectType()
-	local Object = self.Object
-
-	if not Object or not Object.ClassName then 
-		warn("[ERROR] Invalid object reference || Received: ", Object) 
-		return nil 
-	end
-
-	local Category = ClassTypeMap[Object.ClassName]
-
-	if Category then
-		return Category
-	end
-
-	if Object.ClassName == "Model" then 
-		warn("[ERROR] This does not support passing a model directly yet. I would recommend using the built in RegisterModel function or passing in a PrimaryPart || Received: " .. Object.ClassName)
-	else
-		warn("[ERROR] The tracker only accepts baseparts, meshparts, or unions. || Received: " .. Object.ClassName)
-	end
-
-	return nil
-end
 
 function ESP_Utility:_IsAlive()
 	if not self.Object or not self.Object.Parent then 
@@ -69,41 +115,65 @@ function ESP_Utility:_IsAlive()
 end
 
 function ESP_Utility:_Get2D_Bounds()
-	local ObjectCFrame = self.Object.CFrame
-	local HalfSize = self.Object.Size / 2
+	-- 1. Logic for Non-Models (Dynamic/Rotating)
+	if self.ObjectType ~= "Model" then
+		local cf, size = self.Object.CFrame, self.Object.Size
+		local half = size / 2
+		local corners = {
+			cf * Vector3.new(-half.X, -half.Y, -half.Z),
+			cf * Vector3.new(half.X, -half.Y, -half.Z),
+			cf * Vector3.new(half.X, -half.Y, half.Z),
+			cf * Vector3.new(-half.X, -half.Y, half.Z),
+			cf * Vector3.new(-half.X, half.Y, -half.Z),
+			cf * Vector3.new(half.X, half.Y, -half.Z),
+			cf * Vector3.new(half.X, half.Y, half.Z),
+			cf * Vector3.new(-half.X, half.Y, half.Z),
+		}
 
-	local CornerOffsets = {
-		Vector3.new(-HalfSize.X, -HalfSize.Y, -HalfSize.Z),
-		Vector3.new(HalfSize.X, -HalfSize.Y, -HalfSize.Z),
-		Vector3.new(HalfSize.X, -HalfSize.Y, HalfSize.Z),
-		Vector3.new(-HalfSize.X, -HalfSize.Y, HalfSize.Z),
-		Vector3.new(-HalfSize.X, HalfSize.Y, -HalfSize.Z),
-		Vector3.new(HalfSize.X, HalfSize.Y, -HalfSize.Z),
-		Vector3.new(HalfSize.X, HalfSize.Y, HalfSize.X),
-		Vector3.new(-HalfSize.X, HalfSize.Y, HalfSize.Z),
-	}
+		local minX, minY = math.huge, math.huge
+		local maxX, maxY = -math.huge, -math.huge
 
-	local MinX, MinY = math.huge, math.huge
-	local MaxX, MaxY = -math.huge, -math.huge
-	local AnyCornerVisible = false
+		for _, worldPos in ipairs(corners) do
+			local screenPos, onScreen = WorldToScreen(worldPos)
 
-	for _, Offset in ipairs(CornerOffsets) do
-		local ScreenPoint, IsOnScreen = WorldToScreen(ObjectCFrame * Offset)
+			-- STRICT CHECK: If even ONE corner is off-screen, hide the whole thing
+			if not onScreen then 
+				return nil 
+			end
 
-		if IsOnScreen then
-			AnyCornerVisible = true
-			if ScreenPoint.X < MinX then MinX = ScreenPoint.X end
-			if ScreenPoint.Y < MinY then MinY = ScreenPoint.Y end
-			if ScreenPoint.X > MaxX then MaxX = ScreenPoint.X end
-			if ScreenPoint.Y > MaxY then MaxY = ScreenPoint.Y end
+			minX = math.min(minX, screenPos.X)
+			minY = math.min(minY, screenPos.Y)
+			maxX = math.max(maxX, screenPos.X)
+			maxY = math.max(maxY, screenPos.Y)
 		end
+
+		return minX, minY, maxX, maxY
 	end
 
-	-- Only return coordinates if at least part of the object is in view
-	if not AnyCornerVisible then return nil end
+	-- 2. "Model" Logic (Static/Non-Rotating Box)
+	local Position = self.Object.Position
+	local Size = self.Object.Size
+
+	local ScreenCenter, CenterVisible = WorldToScreen(Position)
+	local ScreenTop, TopVisible = WorldToScreen(Position + Vector3.new(0, Size.Y / 2, 0))
+
+	if not CenterVisible or not TopVisible then 
+		return nil 
+	end
+
+	local Height = math.abs(ScreenCenter.Y - ScreenTop.Y) * 5
+	local Width = Height * 1.2
+
+	local MinX = ScreenCenter.X - (Width / 2)
+	local MaxX = ScreenCenter.X + (Width / 2)
+	local MinY = ScreenCenter.Y - (Height / 2)
+	local MaxY = ScreenCenter.Y + (Height / 2)
 
 	return MinX, MinY, MaxX, MaxY
 end
+
+
+
 
 function ESP_Utility:_GetDistance()
 	local Character = game.Players.LocalPlayer.Character
@@ -127,7 +197,7 @@ end
 
 
 function ESP_Utility:_Update()
-	if not self:_IsAlive() or not self.ObjectType or self.ObjectType == "Model" then 
+	if not self:_IsAlive() or not self.ObjectType then 
 		self:Destroy()
 		return 
 	end 
@@ -135,7 +205,7 @@ function ESP_Utility:_Update()
 	local min_x, min_y, max_x, max_y = self:_Get2D_Bounds()
 	local Hidden = false
 
-	for _, Data in pairs(self.Drawings) do
+	for DrawingName, Data in pairs(self.Drawings) do
 		-- 1. Identify the actual Drawing object
 		local DrawingObject = (type(Data) == "table" and Data.Drawing) or Data
 
@@ -144,6 +214,7 @@ function ESP_Utility:_Update()
 			DrawingObject.Visible = false
 			Hidden = true
 		else
+			if DrawingName == "Square" and self.ObjectType == "Model" then continue end 
 			DrawingObject.Visible = true
 		end
 	end
@@ -157,12 +228,10 @@ function ESP_Utility:_Update()
 	}
 
 
-
 	-- Update Square
 	local Square = self.Drawings["Square"]
 	Square.Position = Vector2.new(min_x, min_y)
 	Square.Size = Vector2.new(boxWidth, max_y - min_y)
-
 
 	-- Update texts
 	for Key, Data in pairs(self.Drawings) do
@@ -187,7 +256,9 @@ function ESP_Utility:_CreateSquare()
 	NewSquare.Size = Vector2.new(10,10)
 	NewSquare.Color = self.Color
 	NewSquare.Filled = false
+	if self.ObjectType == "Model" then NewSquare.Visible = false end 
 	self.Drawings["Square"] = NewSquare
+
 end
 
 function ESP_Utility:AddText(Reference, Color, Value, Callback)
@@ -219,7 +290,8 @@ function ESP_Utility:BuildVisualTracker()
 		return "["..math.floor(self:_GetDistance()).."m]" 
 	end)
 
-	self:AddText("Name", self.Color, self.Name)
+	local NameString = self.Name..(self.ObjectType == "Model" and " [MODEL]" or "")
+	self:AddText("Name", self.Color, NameString)
 
 end
 
@@ -248,5 +320,4 @@ end)
 
 notify("ESP thread started", "ESP_Utility", 3)
 
-_G.ESP_Utility = ESP_Utility
 return ESP_Utility
