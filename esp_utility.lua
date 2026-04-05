@@ -199,8 +199,9 @@ function ESP_Utility:Destroy()
 		Drawing:Remove()
 	end
 
-	self.Drawings = {}
-
+	for key, value in self do 
+		self[key] = nil
+	end
 	setmetatable(self, nil)
 end
 
