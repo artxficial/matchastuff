@@ -18,17 +18,17 @@ local ClassTypeMap = {
     ["Part"] = "Single",
 }
 
-function ESP_Utility.NewTracker(Object, Color)
+function ESP_Utility.NewTracker(Object, CustomName, Color)
 	if TrackersToUpdate[Object.Address] then
 	--	print("Already exists")
 		return
 	end
 
     local self = setmetatable({}, ESP_Utility)
-    self.Name = Object.Name
-	  self.Object = Object
-	  self.Color = Color or Color3.fromRGB(255,255,255)
-	  self.Drawings = {}
+    self.Name = CustomName or Object.Name
+	self.Object = Object
+	self.Color = Color or Color3.fromRGB(255,255,255)
+	self.Drawings = {}
 
     self.ObjectType = self:_GetObjectType()
     self:BuildVisualTracker()
@@ -164,7 +164,7 @@ end
 
 function ESP_Utility:_CreateText()
     local NameText = Drawing.new("Text")
-    NameText.Text = self.Object.Name
+    NameText.Text = self.Name
     NameText.Center = true
     NameText.Outline = true
     NameText.Color = self.Color
