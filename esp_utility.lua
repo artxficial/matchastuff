@@ -209,7 +209,7 @@ UpdateThread = RunService.RenderStepped:Connect(function(dt)
 end)
 
 task.spawn(function()
-	notify("ESP thread started", "ESP_Utility", 3)
+--	notify("ESP thread started", "ESP_Utility", 3)
 end)
 
 return ESP_Utility
