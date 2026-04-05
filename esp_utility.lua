@@ -16,9 +16,6 @@ local ClassTypeMap = {
     ["MeshPart"] = "Single",
     ["UnionOperation"] = "Single",
     ["Part"] = "Single",
-    ["WedgePart"] = "Single",
-    ["CornerWedgePart"] = "Single",
-    ["TrussPart"] = "Single",
 }
 
 function ESP_Utility.NewTracker(Object, Color)
