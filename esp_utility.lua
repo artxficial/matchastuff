@@ -110,6 +110,7 @@ function ESP_Utility:_GetDistance()
   if not Character then return 0 end 
 
   local HRP = Character.HumanoidRootPart
+  if not HRP.Parent then return 0 end 
 
   return magnitude(HRP.Position, self.Object.Position)
 end
