@@ -40,7 +40,6 @@ end
 function ESP_Utility:_GetObjectType()
     local Object = self.Object
 
-    -- Ensuring the object exists and has a ClassName
     if not Object or not Object.ClassName then 
         warn("[ERROR] Invalid object reference || Received: ", Object) 
         return nil 
@@ -52,7 +51,6 @@ function ESP_Utility:_GetObjectType()
         return Category
     end
 
-    warn("[ERROR] The tracker only accepts models, baseparts, meshparts, or unions. || Received: " .. Object.ClassName)
 	if Object.ClassName == "Model" then 
 		warn("[ERROR] This does not support passing a model directly yet. I would recommend using the built in RegisterModel function or passing in a PrimaryPart || Received: " .. Object.ClassName)
 	else
