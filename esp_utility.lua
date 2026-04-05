@@ -16,6 +16,9 @@ local ClassTypeMap = {
     ["MeshPart"] = "Single",
     ["UnionOperation"] = "Single",
     ["Part"] = "Single",
+    ["WedgePart"] = "Single",
+    ["CornerWedgePart"] = "Single",
+    ["TrussPart"] = "Single",
 }
 
 function ESP_Utility.NewTracker(Object, Color)
@@ -29,7 +32,7 @@ function ESP_Utility.NewTracker(Object, Color)
 	  self.Object = Object
 	  self.Color = Color or Color3.fromRGB(255,255,255)
 	  self.Drawings = {}
-    
+
     self.ObjectType = self:_GetObjectType()
     self:BuildVisualTracker()
 
@@ -39,7 +42,8 @@ end
 
 function ESP_Utility:_GetObjectType()
     local Object = self.Object
-    
+
+    -- Ensuring the object exists and has a ClassName
     if not Object or not Object.ClassName then 
         warn("[ERROR] Invalid object reference || Received: ", Object) 
         return nil 
@@ -51,6 +55,7 @@ function ESP_Utility:_GetObjectType()
         return Category
     end
 
+    warn("[ERROR] The tracker only accepts models, baseparts, meshparts, or unions. || Received: " .. Object.ClassName)
 	if Object.ClassName == "Model" then 
 		warn("[ERROR] This does not support passing a model directly yet. I would recommend using the built in RegisterModel function or passing in a PrimaryPart || Received: " .. Object.ClassName)
 	else
@@ -71,7 +76,7 @@ end
 function ESP_Utility:_Get2D_Bounds()
     local ObjectCFrame = self.Object.CFrame
     local HalfSize = self.Object.Size / 2
-    
+
     local CornerOffsets = {
         Vector3.new(-HalfSize.X, -HalfSize.Y, -HalfSize.Z),
         Vector3.new(HalfSize.X, -HalfSize.Y, -HalfSize.Z),
@@ -82,14 +87,14 @@ function ESP_Utility:_Get2D_Bounds()
         Vector3.new(HalfSize.X, HalfSize.Y, HalfSize.X),
         Vector3.new(-HalfSize.X, HalfSize.Y, HalfSize.Z),
     }
-    
+
     local MinX, MinY = math.huge, math.huge
     local MaxX, MaxY = -math.huge, -math.huge
     local AnyCornerVisible = false
-    
+
     for _, Offset in ipairs(CornerOffsets) do
         local ScreenPoint, IsOnScreen = WorldToScreen(ObjectCFrame * Offset)
-        
+
         if IsOnScreen then
             AnyCornerVisible = true
             if ScreenPoint.X < MinX then MinX = ScreenPoint.X end
@@ -98,10 +103,10 @@ function ESP_Utility:_Get2D_Bounds()
             if ScreenPoint.Y > MaxY then MaxY = ScreenPoint.Y end
         end
     end
-    
+
     -- Only return coordinates if at least part of the object is in view
     if not AnyCornerVisible then return nil end
-    
+
     return MinX, MinY, MaxX, MaxY
 end
 
@@ -110,7 +115,7 @@ function ESP_Utility:_GetDistance()
   if not Character then return 0 end 
 
   local HRP = Character.HumanoidRootPart
-  
+
   return magnitude(HRP.Position, self.Object.Position)
 end
 
@@ -118,9 +123,9 @@ function ESP_Utility:_SetTextPosition(DrawingObject, Index)
     local Session = self.Session
     local LineSpacing = 14 -- Pixels between each line
     local Padding = 10     -- Initial gap from the top of the box
-    
+
     local FinalY = Session.TopY - Padding - (Index * LineSpacing)
-    
+
     DrawingObject.Position = Vector2.new(Session.CenterX, FinalY)
 end
 
@@ -153,7 +158,7 @@ function ESP_Utility:_Update()
 
 	local NameText = self.Drawings["NameText"]
     self:_SetTextPosition(NameText, 1)
-    
+
     local DistanceText = self.Drawings["DistanceText"]
     DistanceText.Text = math.floor(self:_GetDistance()).."m"
     self:_SetTextPosition(DistanceText, 0)
@@ -166,13 +171,13 @@ function ESP_Utility:_CreateText()
     NameText.Center = true
     NameText.Outline = true
     NameText.Color = self.Color
-    
+
     local DistanceText = Drawing.new("Text")
     DistanceText.Text = "???m"
     DistanceText.Center = true 
    	DistanceText.Outline = true
     DistanceText.Color = self.Color
-    
+
     self.Drawings["NameText"] = NameText
     self.Drawings["DistanceText"] = DistanceText
 end
@@ -192,7 +197,7 @@ end
 
 function ESP_Utility:Destroy()
 	TrackersToUpdate[self.Object.Address] = nil
-	
+
 	for Name, Drawing in pairs(self.Drawings) do 
 		Drawing:Remove()
 	end
@@ -210,6 +215,3 @@ end)
 
 _G.ESP_Utility = ESP_Utility
 return ESP_Utility
-
-
-
