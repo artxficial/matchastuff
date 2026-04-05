@@ -21,7 +21,7 @@ local ClassTypeMap = {
 function ESP_Utility.NewTracker(Object, CustomName, Color)
 	if TrackersToUpdate[Object.Address] then
 		--	print("Already exists")
-		return
+		return TrackersToUpdate[Object.Address]
 	end
 
 	local self = setmetatable({}, ESP_Utility)
@@ -133,11 +133,22 @@ function ESP_Utility:_Update()
 	end 
 
 	local min_x, min_y, max_x, max_y = self:_Get2D_Bounds()
+	local Hidden = false
 
-	if not min_x then
-		for _, Drawing in self.Drawings do Drawing.Visible = false end
-		return
+	for _, Data in pairs(self.Drawings) do
+		-- 1. Identify the actual Drawing object
+		local DrawingObject = (type(Data) == "table" and Data.Drawing) or Data
+
+		-- 2. Ensure it's actually a Drawing object (they have a 'Visible' property)
+		if not min_x then 
+			DrawingObject.Visible = false
+			Hidden = true
+		else
+			DrawingObject.Visible = true
+		end
 	end
+
+	if Hidden then return end 
 
 	local boxWidth = max_x - min_x
 	self.Session = {
@@ -145,38 +156,31 @@ function ESP_Utility:_Update()
 		TopY = min_y
 	}
 
-	for _, Drawing in self.Drawings do Drawing.Visible = true end
+
 
 	-- Update Square
 	local Square = self.Drawings["Square"]
 	Square.Position = Vector2.new(min_x, min_y)
 	Square.Size = Vector2.new(boxWidth, max_y - min_y)
 
-	local NameText = self.Drawings["NameText"]
-	self:_SetTextPosition(NameText, 1)
 
-	local DistanceText = self.Drawings["DistanceText"]
-	DistanceText.Text = math.floor(self:_GetDistance()).."m"
-	self:_SetTextPosition(DistanceText, 0)
+	-- Update texts
+	for Key, Data in pairs(self.Drawings) do
+		if string.find(Key, "Text") then
+			local DrawingObject = Data.Drawing
+			local Callback = Data.Function
+			local Index = Data.Index
+
+			if Callback then
+				DrawingObject.Text = Callback()
+			end
+
+			self:_SetTextPosition(DrawingObject, Index) 
+		end
+	end
+
 end
 
-
-function ESP_Utility:_CreateText()
-	local NameText = Drawing.new("Text")
-	NameText.Text = self.Name
-	NameText.Center = true
-	NameText.Outline = true
-	NameText.Color = self.Color
-
-	local DistanceText = Drawing.new("Text")
-	DistanceText.Text = "???m"
-	DistanceText.Center = true 
-	DistanceText.Outline = true
-	DistanceText.Color = self.Color
-
-	self.Drawings["NameText"] = NameText
-	self.Drawings["DistanceText"] = DistanceText
-end
 
 function ESP_Utility:_CreateSquare()
 	local NewSquare = Drawing.new("Square")
@@ -186,16 +190,48 @@ function ESP_Utility:_CreateSquare()
 	self.Drawings["Square"] = NewSquare
 end
 
+function ESP_Utility:AddText(Reference, Color, Value, Callback)
+	if self.Drawings[Reference.."Text"] then return end 
+
+	local textCount = 0
+	for k, _ in pairs(self.Drawings) do
+		if string.find(k, "Text") then
+			textCount = textCount + 1
+		end
+	end
+
+	local NewText = Drawing.new("Text")
+	NewText.Text = Value or "Provide a value (3rd arg) or callback (4th arg)"
+	NewText.Center = true
+	NewText.Outline = true 
+	NewText.Color = Color or Color3.fromRGB(200,200,200)
+	self.Drawings[Reference.."Text"] = {
+		Drawing = NewText,
+		Function = Callback or nil,
+		Index = textCount,
+	}
+end
+
 function ESP_Utility:BuildVisualTracker()
-	self:_CreateText()
 	self:_CreateSquare()
+
+	self:AddText("Distance", nil, "ok", function() 
+		return "["..math.floor(self:_GetDistance()).."m]" 
+	end)
+
+	self:AddText("Name", self.Color, self.Name)
+
 end
 
 function ESP_Utility:Destroy()
 	TrackersToUpdate[self.Object.Address] = nil
 
-	for Name, Drawing in pairs(self.Drawings) do 
-		Drawing:Remove()
+	for Name, Drawing in pairs(self.Drawings) do
+		if type(Drawing) == "table" then 
+			Drawing.Drawing:Remove()
+		else
+			Drawing:Remove()
+		end
 	end
 
 	for key, value in self do 
@@ -211,5 +247,6 @@ UpdateThread = RunService.RenderStepped:Connect(function(dt)
 end)
 
 notify("ESP thread started", "ESP_Utility", 3)
+
 _G.ESP_Utility = ESP_Utility
 return ESP_Utility
