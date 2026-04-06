@@ -330,7 +330,7 @@ function ESP_Utility:BuildVisualTracker()
 		return "["..math.floor(self:_GetDistance()).."m]" 
 	end)
 
-	local NameString = self.Name..(self.ObjectType == "Model" and " [MODEL]" or "")
+	local NameString = self.Name..(self.ObjectType == "Model" and " [M]" or "")
 	self:AddText("Name", self.Color, NameString)
 end
 
