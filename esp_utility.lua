@@ -98,6 +98,9 @@ function ESP_Utility.NewTracker(Object, CustomName, Color)
 	self.Color = Color or Color3.fromRGB(255,255,255)
 	self.Drawings = {}
 	self.ObjectType = ObjectType
+	self.DrawingOrder = {}
+	self.Visible = true
+	self.TrackerOffScreen = false
 
 	self:BuildVisualTracker()
 
@@ -105,72 +108,75 @@ function ESP_Utility.NewTracker(Object, CustomName, Color)
 	return self
 end
 
-
 function ESP_Utility:_IsAlive()
-	if not self.Object or not self.Object.Parent or not self.Object.Parent.Parent then 
+	if not self.Object then return false end 
+
+	local InWorkspace = self.Object:IsDescendantOf(game.Workspace)
+	if not InWorkspace then 
 		return false 
-	else 
-		return true
-	end
+	end 
+
+	return true
 end
 
+local CORNER_OFFSETS = {
+	Vector3.new(-1, -1, -1), Vector3.new( 1, -1, -1),
+	Vector3.new( 1, -1,  1), Vector3.new(-1, -1,  1),
+	Vector3.new(-1,  1, -1), Vector3.new( 1,  1, -1),
+	Vector3.new( 1,  1,  1), Vector3.new(-1,  1,  1),
+}
+
 function ESP_Utility:_Get2D_Bounds()
-	-- 1. Logic for Non-Models (Dynamic/Rotating)
+	local position = self.Object.Position
+	local size     = self.Object.Size
+	local half     = size * 0.5
+
+	local minX, minY =  math.huge,  math.huge
+	local maxX, maxY = -math.huge, -math.huge
+
 	if self.ObjectType ~= "Model" then
-		local cf, size = self.Object.CFrame, self.Object.Size
-		local half = size / 2
-		local corners = {
-			cf * Vector3.new(-half.X, -half.Y, -half.Z),
-			cf * Vector3.new(half.X, -half.Y, -half.Z),
-			cf * Vector3.new(half.X, -half.Y, half.Z),
-			cf * Vector3.new(-half.X, -half.Y, half.Z),
-			cf * Vector3.new(-half.X, half.Y, -half.Z),
-			cf * Vector3.new(half.X, half.Y, -half.Z),
-			cf * Vector3.new(half.X, half.Y, half.Z),
-			cf * Vector3.new(-half.X, half.Y, half.Z),
-		}
+		for i = 1, 8 do
+			local offset = CORNER_OFFSETS[i]
+			local worldPos = Vector3.new(
+				position.X + offset.X * half.X,
+				position.Y + offset.Y * half.Y,
+				position.Z + offset.Z * half.Z
+			)
 
-		local minX, minY = math.huge, math.huge
-		local maxX, maxY = -math.huge, -math.huge
-
-		for _, worldPos in ipairs(corners) do
 			local screenPos, onScreen = WorldToScreen(worldPos)
 
-			-- STRICT CHECK: If even ONE corner is off-screen, hide the whole thing
-			if not onScreen then 
-				return nil 
+			if not onScreen then return nil end 
+
+			if onScreen then
+				if screenPos.X < minX then minX = screenPos.X end
+				if screenPos.Y < minY then minY = screenPos.Y end
+				if screenPos.X > maxX then maxX = screenPos.X end
+				if screenPos.Y > maxY then maxY = screenPos.Y end
 			end
-
-			minX = math.min(minX, screenPos.X)
-			minY = math.min(minY, screenPos.Y)
-			maxX = math.max(maxX, screenPos.X)
-			maxY = math.max(maxY, screenPos.Y)
 		end
-
 		return minX, minY, maxX, maxY
 	end
 
-	-- 2. "Model" Logic (Static/Non-Rotating Box)
 	local Position = self.Object.Position
-	local Size = self.Object.Size
+	local Size     = self.Object.Size
 
 	local ScreenCenter, CenterVisible = WorldToScreen(Position)
-	local ScreenTop, TopVisible = WorldToScreen(Position + Vector3.new(0, Size.Y / 2, 0))
+	local ScreenTop,    TopVisible    = WorldToScreen(Position + Vector3.new(0, Size.Y * 0.5, 0))
 
-	if not CenterVisible or not TopVisible then 
-		return nil 
-	end
+	if not CenterVisible or not TopVisible then return nil end
 
 	local Height = math.abs(ScreenCenter.Y - ScreenTop.Y) * 5
-	local Width = Height * 1.2
+	local Width  = Height * 1.2
+	local halfW  = Width  * 0.5
+	local halfH  = Height * 0.5
 
-	local MinX = ScreenCenter.X - (Width / 2)
-	local MaxX = ScreenCenter.X + (Width / 2)
-	local MinY = ScreenCenter.Y - (Height / 2)
-	local MaxY = ScreenCenter.Y + (Height / 2)
-
-	return MinX, MinY, MaxX, MaxY
+	return
+		ScreenCenter.X - halfW,
+	ScreenCenter.Y - halfH,
+	ScreenCenter.X + halfW,
+	ScreenCenter.Y + halfH
 end
+
 
 
 
@@ -214,6 +220,27 @@ function ESP_Utility:_SetTextPosition(DrawingObject, Y_Offset)
 	DrawingObject.Position = Vector2.new(manualCenterX, FinalY)
 end
 
+function ESP_Utility:_DetermineVisibility()
+	local isOffScreen  = self.TrackerOffScreen
+	local isVisible    = self.Visible
+
+	local shouldRender = isVisible and not isOffScreen
+
+	for drawingName, data in self.Drawings do
+		local DrawingObject = (type(data) == "table" and data.Drawing) or data
+
+		if not shouldRender then
+			DrawingObject.Visible = false
+			continue
+		end
+
+		local setting = data.Visible
+		DrawingObject.Visible = setting
+	end
+
+	return shouldRender
+end
+
 function ESP_Utility:_Update()
 	if not self:_IsAlive() or not self.ObjectType then 
 		self:Destroy()
@@ -223,21 +250,10 @@ function ESP_Utility:_Update()
 	local min_x, min_y, max_x, max_y = self:_Get2D_Bounds()
 	local Hidden = false
 
-	for DrawingName, Data in pairs(self.Drawings) do
-		-- 1. Identify the actual Drawing object
-		local DrawingObject = (type(Data) == "table" and Data.Drawing) or Data
+	self.TrackerOffScreen = (min_x == nil)
 
-		-- 2. Ensure it's actually a Drawing object (they have a 'Visible' property)
-		if not min_x then 
-			DrawingObject.Visible = false
-			Hidden = true
-		else
-			if DrawingName == "Square" and self.ObjectType == "Model" then continue end 
-			DrawingObject.Visible = true
-		end
-	end
-
-	if Hidden then return end 
+	local ShouldRender = self:_DetermineVisibility()
+	if not ShouldRender then return end 
 
 	local boxWidth = max_x - min_x
 	self.Session = {
@@ -247,25 +263,23 @@ function ESP_Utility:_Update()
 
 
 	-- Update Square
-	local Square = self.Drawings["Square"]
+	local Square = self.Drawings["Square"].Drawing
 	Square.Position = Vector2.new(min_x, min_y)
 	Square.Size = Vector2.new(boxWidth, max_y - min_y)
 
 	-- Update texts
-	for Key, Data in pairs(self.Drawings) do
-		if string.find(Key, "Text") then
-			local DrawingObject = Data.Drawing
-			local Callback = Data.Function
-			local Index = Data.Index
+	for _, TextReference in self.DrawingOrder do 
+		local Data = self.Drawings[TextReference]
+		local DrawingObject = Data.Drawing
+		local Callback = Data.Function
+		local Index = Data.Index
 
-			if Callback then
-				DrawingObject.Text = Callback()
-			end
-
-			self:_SetTextPosition(DrawingObject, Data.Y_Offset) 
+		if Callback then
+			DrawingObject.Text = Callback()
 		end
-	end
 
+		self:_SetTextPosition(DrawingObject, Data.Y_Offset) 
+	end
 end
 
 
@@ -275,19 +289,30 @@ function ESP_Utility:_CreateSquare()
 	NewSquare.Color = self.Color
 	NewSquare.Filled = false
 	if self.ObjectType == "Model" then NewSquare.Visible = false end 
-	self.Drawings["Square"] = NewSquare
-
+	self.Drawings["Square"] = {
+		Drawing = NewSquare,
+		Visible = true,
+	}
 end
 
-function ESP_Utility:AddText(Reference, Color, Value, Callback, CustomIndex)
-	local keyName = Reference .. "Text"
-	if self.Drawings[keyName] then return end
+function ESP_Utility:AddText(Reference, Color, Value, Callback)
+	if self.Drawings[Reference] then return end
 
 	if not self.DrawingOrder then
 		self.DrawingOrder = {}
 	end
 
-	-- 1. Calculate the NEW item's line count first
+	local NewText = Drawing.new("Text")
+	NewText.Text = Value or "Callback passed, uninitialized"
+	NewText.Center = false
+	NewText.Outline = true
+	NewText.Color = Color or Color3.fromRGB(200, 200, 200)
+
+	self.Drawings[Reference] = {
+		Drawing = NewText,
+	}
+
+	-- 1. Calculate the new item's line count first
 	local currentText = tostring((Callback and Callback()) or Value or "")
 	local _, newlineCount = string.gsub(currentText, "\n", "")
 	local currentLineCount = newlineCount + 1
@@ -303,24 +328,27 @@ function ESP_Utility:AddText(Reference, Color, Value, Callback, CustomIndex)
 	end
 
 	-- 3. Assign the offset
-	local assignedOffset = CustomIndex or totalLineHeightSoFar + currentLineCount - 1
+	local assignedOffset = totalLineHeightSoFar + currentLineCount - 1
 
-	-- 4. Create drawing
-	local NewText = Drawing.new("Text")
-	NewText.Text = currentText
-	NewText.Center = false
-	NewText.Outline = true
-	NewText.Color = Color or Color3.fromRGB(200, 200, 200)
-
-	-- 5. Store both the Offset (where it starts) and the LineCount (how big it is)
-	self.Drawings[keyName] = {
+	self.Drawings[Reference] = {
 		Drawing = NewText,
 		Function = Callback or nil,
 		Y_Offset = assignedOffset,
-		LineCount = currentLineCount -- CRITICAL: Store this so the NEXT item knows where to start
+		LineCount = currentLineCount,
+		Visible = true,
 	}
 
-	table.insert(self.DrawingOrder, keyName)
+	table.insert(self.DrawingOrder, Reference)
+end
+
+function ESP_Utility:ChangeText(Reference, Value, Color)
+	local TextData = self.Drawings[Reference] 
+	if not TextData or not TextData.LineCount then warn("Attempting to change text of a non-text object") return end 
+	if TextData.Function ~= nil then warn(string.format("TEXT: %s already has a callback assigned, remove it to use :ChangeText", Reference)) return end 
+
+	local TextDrawing = TextData.Drawing
+	TextDrawing.Text = Value or TextDrawing.Text
+	TextDrawing.Color = Color or TextDrawing.Color
 end
 
 function ESP_Utility:BuildVisualTracker()
@@ -358,6 +386,7 @@ UpdateThread = RunService.RenderStepped:Connect(function(dt)
 end)
 
 notify("ESP thread started", "ESP_Utility", 3)
+print("[ESP_Utility] Functions were imported")
 
 _G.ESP_Utility = ESP_Utility
 return ESP_Utility
