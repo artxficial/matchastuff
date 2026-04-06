@@ -1,9 +1,9 @@
+local RunService = game:GetService("RunService")
 local ESP_Utility = {}
-local TrackersToUpdate = {}
 local UpdateThread = nil
 ESP_Utility.__index = ESP_Utility
 
-local RunService = game:GetService("RunService")
+ESP_Utility.TrackersToUpdate = {}
 
 local function magnitude(p1, p2)
 	local dx = p2.X - p1.X
@@ -87,9 +87,9 @@ function ESP_Utility.NewTracker(Object, CustomName, Color)
 		end 
 	end
 
-	if TrackersToUpdate[Object.Address] then
+	if ESP_Utility.TrackersToUpdate[Object.Address] then
 		--	print("Already exists")
-		return TrackersToUpdate[Object.Address]
+		return ESP_Utility.TrackersToUpdate[Object.Address]
 	end
 
 	local self = setmetatable({}, ESP_Utility)
@@ -104,7 +104,7 @@ function ESP_Utility.NewTracker(Object, CustomName, Color)
 
 	self:BuildVisualTracker()
 
-	TrackersToUpdate[Object.Address] = self
+	ESP_Utility.TrackersToUpdate[Object.Address] = self
 	return self
 end
 
@@ -363,7 +363,7 @@ function ESP_Utility:BuildVisualTracker()
 end
 
 function ESP_Utility:Destroy()
-	TrackersToUpdate[self.Object.Address] = nil
+	ESP_Utility.TrackersToUpdate[self.Object.Address] = nil
 
 	for Name, Drawing in pairs(self.Drawings) do
 		if type(Drawing) == "table" then 
@@ -380,7 +380,7 @@ function ESP_Utility:Destroy()
 end
 
 UpdateThread = RunService.RenderStepped:Connect(function(dt)
-	for i, v in TrackersToUpdate do 
+	for i, v in ESP_Utility.TrackersToUpdate do 
 		v:_Update()
 	end 
 end)
