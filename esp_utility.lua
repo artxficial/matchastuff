@@ -107,7 +107,7 @@ end
 
 
 function ESP_Utility:_IsAlive()
-	if not self.Object or not self.Object.Parent then 
+	if not self.Object or not self.Object.Parent or not self.Object.Parent.Parent then 
 		return false 
 	else 
 		return true
