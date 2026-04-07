@@ -25,6 +25,43 @@ local function InputFromText(Text)
     return "Pressed ".. Keycode.."/"..Text
 end
 
+local function BruteForceColor(Address, Range)
+    Range = Range or 1024
+    print(string.format("--- Starting Brute Force Scan: %X ---", Address))
+    for offset = 0, Range, 4 do
+        local r = memory_read("float", Address + offset)
+        local g = memory_read("float", Address + offset + 4)
+        local b = memory_read("float", Address + offset + 8)
+
+        -- Guard against nil returns first
+        if type(r) == "number" and type(g) == "number" and type(b) == "number" then
+
+			local isInvalid = (r < 0.0001 or r > 1) or (g < 0.0001 or g > 1) or (b < 0.0001 or b > 1)
+
+
+            if not isInvalid then
+                local isPureWhite = (r == 1 and g == 1 and b == 1)
+
+                if not isPureWhite then
+                    print(string.format("VALID COLOR FOUND [0x%X] -> R:%.3f G:%.3f B:%.3f", offset, r, g, b))
+                end
+            end
+        end
+    end
+    print("--- Scan Complete ---")
+end
+
+local function GetTextColor(Address)
+    if not Address or Address == 0 then return nil end
+	local TextColorOffset = 0xE70
+	
+    local r = memory_read("float", Address + TextColorOffset)
+    local g = memory_read("float", Address + TextColorOffset + 4)
+    local b = memory_read("float", Address + TextColorOffset + 8)
+
+    return Color3.new(r, g, b)
+end
+
 local function AreUIObjectsAligned(ObjectA, ObjectB)
     local posA, sizeA = ObjectA.AbsolutePosition, ObjectA.AbsoluteSize
     local posB, sizeB = ObjectB.AbsolutePosition, ObjectB.AbsoluteSize
