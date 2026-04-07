@@ -348,7 +348,10 @@ function ESP_Utility:ChangeText(Reference, Value, NewColor)
 
 	local TextDrawing = TextData.Drawing
 	TextDrawing.Text = Value or TextDrawing.Text
-	TextDrawing.Color = NewColor or TextDrawing.Color
+
+	if NewColor then 
+		TextDrawing.Color = NewColor
+	end
 end
 
 function ESP_Utility:BuildVisualTracker()
