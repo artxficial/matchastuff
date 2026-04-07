@@ -295,7 +295,7 @@ function ESP_Utility:_CreateSquare()
 	}
 end
 
-function ESP_Utility:AddText(Reference, Color, Value, Callback)
+function ESP_Utility:AddText(Reference, NewColor, Value, Callback)
 	if self.Drawings[Reference] then return end
 
 	if not self.DrawingOrder then
@@ -306,7 +306,7 @@ function ESP_Utility:AddText(Reference, Color, Value, Callback)
 	NewText.Text = Value or "Callback passed, uninitialized"
 	NewText.Center = false
 	NewText.Outline = true
-	NewText.Color = Color or Color3.fromRGB(200, 200, 200)
+	NewText.Color = NewColor or Color3.fromRGB(200, 200, 200)
 
 	self.Drawings[Reference] = {
 		Drawing = NewText,
@@ -341,14 +341,14 @@ function ESP_Utility:AddText(Reference, Color, Value, Callback)
 	table.insert(self.DrawingOrder, Reference)
 end
 
-function ESP_Utility:ChangeText(Reference, Value, Color)
+function ESP_Utility:ChangeText(Reference, Value, NewColor)
 	local TextData = self.Drawings[Reference] 
 	if not TextData or not TextData.LineCount then warn("Attempting to change text of a non-text object") return end 
 	if TextData.Function ~= nil then warn(string.format("TEXT: %s already has a callback assigned, remove it to use :ChangeText", Reference)) return end 
 
 	local TextDrawing = TextData.Drawing
 	TextDrawing.Text = Value or TextDrawing.Text
-	TextDrawing.Color = Color or TextDrawing.Color
+	TextDrawing.Color = NewColor or TextDrawing.Color
 end
 
 function ESP_Utility:BuildVisualTracker()
