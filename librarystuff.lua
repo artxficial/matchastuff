@@ -62,6 +62,18 @@ local function GetTextColor(Address)
     return Color3.new(r, g, b)
 end
 
+local function ColorsMatch(Color3_A, Color3_B)
+    Tolerance = 0.1 
+
+	if not Color3_A or not Color3_B then return false end
+	
+    local rDiff = math.abs(Color3_A.R - Color3_B.R)
+    local gDiff = math.abs(Color3_A.G - Color3_B.G)
+    local bDiff = math.abs(Color3_A.B - Color3_B.B)
+
+    return (rDiff <= Tolerance and gDiff <= Tolerance and bDiff <= Tolerance)
+end
+
 local function AreUIObjectsAligned(ObjectA, ObjectB)
     local posA, sizeA = ObjectA.AbsolutePosition, ObjectA.AbsoluteSize
     local posB, sizeB = ObjectB.AbsolutePosition, ObjectB.AbsoluteSize
