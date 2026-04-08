@@ -54,6 +54,7 @@ local function GetFilteredTable()
     if PathToFuseBoxes then 
         for _, FuseBoxModel in PathToFuseBoxes:GetChildren() do 
           local IsCompleted = FuseBoxModel:GetAttribute("Inserted")
+          if IsCompleted then continue end   
           table.insert(Categories.FuseBox.Objects, FuseBoxModel.PrimaryPart)
         end
     end
@@ -121,9 +122,8 @@ task.spawn(function()
                 if not Tracker then
                     continue
                 end
-
-                Tracker.Drawings.Square.Visible = true
-                  if CategoryName == "Generator" then
+                    
+                if CategoryName == "Generator" then
                   Tracker.Drawings.Square.Visible = false
                   
                   local ProgressFunction = function()
@@ -133,6 +133,9 @@ task.spawn(function()
                     end
                         
                     local progress = genModel:GetAttribute("Progress") or 0
+                            
+                    if progress == 100 and Tracker.Visible == true then notify("A generator was completed", "", 3) end -- Notifies is a generator was finished 
+                            
                     if progress == 100 then Tracker.Visible = false return "" end -- Hides tracker when finished
 
                     return string.format("Progress: %d%%", progress)
