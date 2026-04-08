@@ -50,10 +50,12 @@ local function GetFilteredTable()
     if KillerModel and KillerModel:FindFirstChild("Hitbox") then
         table.insert(Categories.Killer.Objects, KillerModel.Hitbox)
     end
-    
-    for _, FuseBoxModel in PathToFuseBoxes:GetChildren() do 
-      local IsCompleted = FuseBoxModel:GetAttribute("Inserted")
-      table.insert(Categories.FuseBox.Objects, FuseBoxModel.PrimaryPart)
+
+    if PathToFuseBoxes then 
+        for _, FuseBoxModel in PathToFuseBoxes:GetChildren() do 
+          local IsCompleted = FuseBoxModel:GetAttribute("Inserted")
+          table.insert(Categories.FuseBox.Objects, FuseBoxModel.PrimaryPart)
+        end
     end
   
     local PotentialObjects = {}
