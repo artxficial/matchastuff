@@ -7,26 +7,32 @@ local CategoryConfiguration = {
         Generator = {
             Color = Color3.fromRGB(170, 85, 255),
             Objects = {},
+            Visible = true, 
         },
         Battery = {
             Color = Color3.fromRGB(220, 232, 93),
             Objects = {},
+            Visible = true, 
         },
         Trap = {
             Color = Color3.fromRGB(232, 102, 100),
             Objects = {},
+            Visible = true, 
         },
         Minion = {
             Color = Color3.fromRGB(130, 55, 55),
             Objects = {},
+            Visible = false, 
         },
         Killer = {
             Color = Color3.fromRGB(255, 150, 150),
             Objects = {},
+            Visible = true, 
         },
         FuseBox = {
             Color = Color3.fromRGB(87, 119, 122),
             Objects = {},
+            Visible = true, 
     }
 }
 
@@ -55,7 +61,9 @@ local function GetFilteredTable()
 
     local KillerModel = game.Workspace.PLAYERS.KILLER:FindFirstChildWhichIsA("Model")
     if KillerModel and KillerModel:FindFirstChild("Hitbox") then
-        table.insert(CategoryConfiguration.Killer.Objects, KillerModel.Hitbox)
+        if KillerModel.Name ~= game.Players.LocalPlayer.Name then  
+            table.insert(CategoryConfiguration.Killer.Objects, KillerModel.Hitbox)
+        end
     end
 
     if PathToFuseBoxes then 
@@ -68,16 +76,26 @@ local function GetFilteredTable()
 				local Tracker = ESP_Utility.TrackersToUpdate[FuseBoxModel]
 				if Tracker then 
 					Tracker:Destroy()
-					continue 
 				end
+                continue
 			end
           table.insert(CategoryConfiguration.FuseBox.Objects, FuseBoxModel.PrimaryPart)
         end
     end
   
     local PotentialObjects = {}
+    local ValidChildren = {
+            ["Trap"] = "Trap",
+            ["Battery"] = "Joint",
+            ["Minion"] = "HumanoidRootPart",
+        }  
 
     for _, item in PathToThings:GetChildren() do
+        local NameMatches = ValidChildren[item.Name]
+        if not NameMatches then 
+            continue 
+        end 
+
         local IsTransparent = (item.Transparency == 1)
         if IsTransparent then
             continue
@@ -98,11 +116,6 @@ local function GetFilteredTable()
     end
 
     for _, item in PotentialObjects do
-        local ValidChildren = {
-            ["Trap"] = "Trap",
-            ["Battery"] = "Joint",
-            ["Minion"] = "HumanoidRootPart",
-        }
 
         for CategoryName, ChildToLookFor in ValidChildren do
             local FoundChild = item:FindFirstChild(ChildToLookFor)
@@ -137,10 +150,16 @@ local function ScanWorkspace()
             if not Tracker then
                 continue
             end
+
+            if Table.Visible == false then  
+                Tracker:Destroy()
+                -- print(CategoryName, " is toggled off")
+                continue
+            end
                 
             if CategoryName == "Generator" then
               Tracker.Drawings.Square.Visible = false
-              
+              local GeneratorProg = 0 
               local ProgressFunction = function()
                 local genModel = Instance.Parent
                 if not genModel then
@@ -161,7 +180,7 @@ local function ScanWorkspace()
             elseif CategoryName == "Killer" then 
                 local Character = Instance.Parent 
                 if not Character then continue end 
-                
+
                 local PlayerName = Character.Name
                 local KillerType = Character:GetAttribute("Character") or ""
                 Tracker:ChangeText("Name", string.format("%s [%s]", PlayerName, KillerType))
@@ -170,10 +189,38 @@ local function ScanWorkspace()
     end
 end
 
+
+local function BuildESPSection(Tab)
+	local Section = Tab:Section("ESP", "Left")
+
+	for CategoryName, Data in CategoryConfiguration do 
+		local ButtonID = CategoryName.."ESP"
+        local StateChanged = function(state)
+           --print(CategoryName.. ": " .. tostring(state))
+			Data.Visible = state
+            ScanWorkspace()
+        end
+        local ToggleButton = Section:Toggle(ButtonID, CategoryName .. " ESP", true, StateChanged)
+	end
+end
+
+local function InitMatchaTab()
+	-- Create the tab
+    local Tab = UI.AddTab("Bite By Night", function(tab)
+        -- ESP Section
+		BuildESPSection(tab)
+    end)
+
+    for CategoryName, Data in CategoryConfiguration do  
+        Data.Visible = UI.GetValue(CategoryName.."ESP")
+    end
+end
+InitMatchaTab()
+
+
 task.spawn(function()
     while true do
         ScanWorkspace()
-
-        task.wait(2.5)
+        task.wait(1.25)
     end
 end)
