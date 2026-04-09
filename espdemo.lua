@@ -163,6 +163,7 @@ local function ScanWorkspace()
               local ProgressFunction = function()
                 local genModel = Instance.Parent
                 if not genModel then
+					Tracker:Destroy()
                     return ""
                 end
                     
