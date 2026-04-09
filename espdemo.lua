@@ -73,7 +73,7 @@ local function GetFilteredTable()
 		-- ESP_Utility only checks if objects are destroyed but if they arent and you dont want them to appear
 		-- in the next rescan cycle then you can do this OR you can add a visiblity toggle to its callback ( See generator callback )
           if IsCompleted then 
-				local Tracker = ESP_Utility.TrackersToUpdate[FuseBoxModel.Address]
+				local Tracker = ESP_Utility.TrackersToUpdate[FuseBoxModel.PrimaryPart.Address]
 				if Tracker then 
 					Tracker:Destroy()
 				end
