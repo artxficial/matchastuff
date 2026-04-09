@@ -9,7 +9,7 @@ local CategoryConfiguration = {
             Objects = {},
             Visible = true, 
         },
-        Batteries = {
+        Battery = {
             Color = Color3.fromRGB(220, 232, 93),
             Objects = {},
             Visible = true, 
@@ -86,7 +86,7 @@ local function GetFilteredTable()
     local PotentialObjects = {}
     local ValidChildren = {
             ["Trap"] = "Trap",
-            ["Batteries"] = "Joint",
+            ["Battery"] = "Joint",
             ["Minion"] = "HumanoidRootPart",
         }  
 
