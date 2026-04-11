@@ -112,9 +112,11 @@ local function DoBlockBar(Indicator, Target)
     local IsAligned, Distance = AreUIObjectsAligned(Indicator, Target)
     
     local BlockBecameVisibleAt = QTE_UI.BlockingQTE.LastVisibleTime
-    local BlockDebounce = QTE_UI.BlockingQTE.Debounce
-    if BlockBecameVisibleAt and (tick() - BlockBecameVisibleAt) < 0.1 then  
-        -- print("Thats too fast")
+
+    -- Method for detecting new run by @haru_ty
+    local IndicatorPositionX = memory_read('float', Indicator.Address + Offsets.FramePositionX)
+    if IndicatorPositionX < 0.1 then  
+        --print("Thats too fast")
         return
     end
 
@@ -122,9 +124,9 @@ local function DoBlockBar(Indicator, Target)
 
     if IsAligned and not Cooldown then 
         QTE_UI.BlockingQTE.Debounce = tick() + 1
-		print("just pressed the key", Distance) 
+		print("just pressed space", Distance) 
         PressKey(32)
-        BlockBecameVisibleAt = nil
+        QTE_UI.BlockingQTE.LastVisibleTime = nil
     end
 end
 
