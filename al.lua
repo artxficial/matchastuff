@@ -30,6 +30,12 @@ local QTE_UI = {
         ["LastVisibleTime"] = nil,
         ["Debounce"] = 0,
         ["IsRunning"] = false,
+    },
+    ["DaggerQTE"] = {
+        ["QTE_Container"] = CombatScreenGui.DaggerQTE,
+        ["LastVisibleTime"] = nil,
+        ["Debounce"] = 0,
+        ["IsRunning"] = false,
     }
 }
 
@@ -160,6 +166,111 @@ local function GetImageColor(ImageObject)
     end
 
     return nil
+end
+
+local function BruteForceTransparency(ImageObject, TargetValue)
+    local Address = ImageObject and ImageObject.Address 
+    if not Address or Address == 0 then return nil end
+
+    local Epsilon = 0.001
+    TargetValue = tonumber(TargetValue) or 0
+
+    print(string.format("--- Brute Forcing Transparency (%.2f) for: %s ---", TargetValue, ImageObject.Name))
+
+    for offset = 0, 4096, 4 do 
+        local success, value = pcall(function() 
+            return memory_read("float", Address + offset) 
+        end)
+
+        if success and value then
+            if math.abs(value - TargetValue) < Epsilon then
+                if value >= 0 and value <= 1 then
+                    print(string.format("[!] POTENTIAL Transparency at Offset 0x%X: %.4f", offset, value))
+                    return value, offset
+                end
+            end
+        end
+    end
+    
+    print("--- Scan Complete: No matching transparency found ---")
+    return nil
+end
+
+
+local function GetImageTransparency(GuiObject)
+    local Address = GuiObject and GuiObject.Address 
+    if not Address or Address == 0 then return nil end
+    local TransparencyOffset = 0xA7C -- for imagelabels not buttons
+
+    local Transparency = memory_read("float", Address + TransparencyOffset)
+    return Transparency
+end
+
+local function GetFrameRotation(ImageObject)
+    local Address = ImageObject and ImageObject.Address 
+    if not Address or Address == 0 then return nil end
+    local FrameRotationOffset = Offsets.FrameRotation
+
+    local Rotation = memory_read('float', Address + FrameRotationOffset)
+    return Rotation
+end
+
+local LastValues = {}
+
+local function ScanForChangedRotation(ImageObject)
+    local Address = ImageObject and ImageObject.Address 
+
+    if not Address or Address == 0 then return end
+
+    local ScanStart = 0 
+    local ScanEnd = 4096
+
+    for offset = ScanStart, ScanEnd, 4 do
+        local success, value = pcall(function() 
+            return memory_read("float", Address + offset) 
+        end)
+
+        if success and value then
+            if LastValues[offset] and math.abs(value - LastValues[offset]) > 0.01 then
+                if value >= -360 and value <= 360 then
+                    print(string.format("[!] VALUE CHANGED | Offset: 0x%X | Old: %.2f | New: %.2f", offset, LastValues[offset], value))
+                end
+            end
+            LastValues[offset] = value
+        end
+    end
+end
+
+
+
+local function SAFEWriteFrameRotation(ImageObject, NewRotation)
+    local Address = ImageObject and ImageObject.Address 
+    if not Address or Address == 0 then return false end
+    
+    local LogicOffset = 0x5A0
+    local TargetAddress = Address + LogicOffset
+
+    -- 1. Read the current value
+    local success, CurrentRotation = pcall(function() 
+        return memory_read('float', TargetAddress) 
+    end)
+
+    if success then
+        memory_write('float', TargetAddress, NewRotation)
+        return true
+    end
+
+    return false
+end
+
+local function LockRotationForDuration(Ring, TargetRotation, Duration)
+    local StartTick = tick()
+    
+    -- Continuously write while the current tick is within the duration
+    while (tick() - StartTick) < Duration do
+        SAFEWriteFrameRotation(Ring, TargetRotation)
+        task.wait() 
+    end
 end
 
 ----------------------------------------------------- Helpers
@@ -368,7 +479,6 @@ local function DoMagicQTE(SlotsFolder, PiecesFolder)
     end
 
 end
-
 ----------------------------------------------------- 
 
 local InputTableForWASD = {
@@ -440,6 +550,39 @@ local function DoFistQTE(KeyHolder)
     end
 end
 
+-----------------------------------------------------
+
+local function DoDaggerQTE(RingsFolder)
+ --   print("--- Brute Force QTE  ---")
+    task.wait(0.3)
+    while true do
+        local children = RingsFolder:GetChildren()
+
+        local RingsExist = false
+        
+        for _, Ring in ipairs(children) do
+            local addr = Ring.Address
+            local idx = tonumber(Ring.Name)
+            
+            if idx and addr then
+                RingsExist = true
+                SAFEWriteFrameRotation(Ring, 0, 3)
+            end
+        end
+
+        if not RingsExist then
+            print("No visible rings remaining. Exiting.")
+            break
+        end
+
+        -- Spam Space
+        keypress(32)
+        keyrelease(32)
+
+        task.wait(0.1)
+    end
+end
+
 ----------------------------------------------------- Combat thread
 
 local QTE_Locks = {}
@@ -450,31 +593,39 @@ local function CombatLoop()
             local QTE_Visible = IsFrameVisible(Data.QTE_Container)
             
             if QTE_Visible then
-                -- Only proceed if the previous run for this specific QTE is finished 
-                if not QTE_Locks[QTE_Type] or QTE_Locks[QTE_Type] == false then
-                    
+                -- Store that it was visible so we know when it hides later
+                Data.IsActive = true 
+
+                if not QTE_Locks[QTE_Type] then
                     task.spawn(function()
-                        QTE_Locks[QTE_Type] = true -- Set Lock
+                        QTE_Locks[QTE_Type] = true
                         
                         if QTE_Type == "FistQTE" then
                             task.wait(0.2)
                             DoFistQTE(Data.KeyHolder)
                         elseif QTE_Type == "BlockingQTE" then
                             DoBlockBar(Data.Indicator, Data.Target)
-                        elseif QTE_Type  == "MagicQTE" then
+                        elseif QTE_Type == "MagicQTE" then
                             DoMagicQTE(Data.RuneSlots, Data.RunePieces)
+                        elseif QTE_Type == "DaggerQTE" then 
+                            DoDaggerQTE(Data.QTE_Container)
                         end
                         
                         QTE_Locks[QTE_Type] = false
                     end)
                 end
             else
-                QTE_Locks[QTE_Type] = false
-                Data.LastVisibleTime = nil
-                PressedIndices = {}
+                if Data.IsActive then
+                    QTE_Locks[QTE_Type] = false
+                    Data.LastVisibleTime = nil
+                    Data.IsActive = false
+                    
+                    PressedIndices = {} 
+                    --print("Reset pressed indices for: " .. QTE_Type)
+                end
             end
         end
-        task.wait(0.01)
+        task.wait()
     end
 end
 
