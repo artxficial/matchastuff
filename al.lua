@@ -6,6 +6,7 @@ local TheoOffsets = HttpService:JSONDecode(game:HttpGet("https://imtheo.lol/Offs
 
 local PlayerGui = game.Players.LocalPlayer.PlayerGui
 local CombatScreenGui = PlayerGui.Combat
+local RunService = game:GetService("RunService")
 
 local QTE_UI = {
     ["BlockingQTE"] = {
@@ -250,27 +251,29 @@ local function SAFEWriteFrameRotation(ImageObject, NewRotation)
     local LogicOffset = 0x5A0
     local TargetAddress = Address + LogicOffset
 
-    -- 1. Read the current value
-    local success, CurrentRotation = pcall(function() 
-        return memory_read('float', TargetAddress) 
-    end)
+    memory_write('float', TargetAddress, NewRotation)
 
-    if success then
-        memory_write('float', TargetAddress, NewRotation)
-        return true
-    end
-
-    return false
+    return true
 end
 
 local function LockRotationForDuration(Ring, TargetRotation, Duration)
     local StartTick = tick()
-    
+    local Connect = nil
     -- Continuously write while the current tick is within the duration
-    while (tick() - StartTick) < Duration do
+    Connect = RunService.Heartbeat:Connect(function()
+        local Timeout = (tick() - StartTick) > Duration 
+
+        if Timeout then 
+            Connect:Disconnect()  
+            Connect = nil
+        end
+
+        SAFEWriteFrameRotation(Ring, TargetRotation)
+    end)
+    --[[while (tick() - StartTick) < Duration do
         SAFEWriteFrameRotation(Ring, TargetRotation)
         task.wait() 
-    end
+    end]]
 end
 
 ----------------------------------------------------- Helpers
@@ -551,35 +554,52 @@ local function DoFistQTE(KeyHolder)
 end
 
 -----------------------------------------------------
+local LockedRings = {}
 
 local function DoDaggerQTE(RingsFolder)
  --   print("--- Brute Force QTE  ---")
-    task.wait(0.3)
+    task.wait(0.1)
     while true do
         local children = RingsFolder:GetChildren()
 
         local RingsExist = false
+        local NumRings = 0
         
         for _, Ring in ipairs(children) do
             local addr = Ring.Address
             local idx = tonumber(Ring.Name)
             
             if idx and addr then
+                NumRings += 1
                 RingsExist = true
-                SAFEWriteFrameRotation(Ring, 0, 3)
+                if not LockedRings[addr] then
+                    LockedRings[addr] = true 
+                    LockRotationForDuration(Ring, 0, 3)
+                    print("Locked ", idx) 
+                end
+              SAFEWriteFrameRotation(Ring, 0)
             end
         end
 
         if not RingsExist then
             print("No visible rings remaining. Exiting.")
+            LockedRings = {}
             break
         end
+
+        --[[for _, Ring in children do 
+            local idx = tonumber(Ring.Name)
+            if idx then 
+                print(memory_read("float", Ring.Address + 0x5A0))
+            end
+        end]]
 
         -- Spam Space
         keypress(32)
         keyrelease(32)
 
-        task.wait(0.1)
+
+        task.wait(0.05)
     end
 end
 
