@@ -37,7 +37,15 @@ local QTE_UI = {
         ["LastVisibleTime"] = nil,
         ["Debounce"] = 0,
         ["IsRunning"] = false,
-    }
+    },
+    ["SwordQTE"] = {
+           ["QTE_Container"] = CombatScreenGui.SwordQTE,
+           ["Inset"] = CombatScreenGui.SwordQTE.Inset,
+           ["Window"] = CombatScreenGui.SwordQTE.Inset.Window,
+           ["LastVisibleTime"] = nil,
+           ["Debounce"] = 0,
+           ["IsRunning"] = false,
+    },
 }
 
 
@@ -400,7 +408,7 @@ local function GetCenter(GuiObject)
     return Vector2.new(Pos.X + (Size.X / 2), Pos.Y + (Size.Y / 2))
 end
 
------------------------------------------------------ QTE methods
+----------------------------------------------------- Block QTE
 
 local LastIndicatorPosition = nil
 
@@ -424,7 +432,7 @@ local function DoBlockBar(Indicator, Target)
     end
 end
 
------------------------------------------------------
+----------------------------------------------------- Magic QTE
 
 local function GetRunePairs(Slots, Pieces)
     local SlotLookup = {}
@@ -482,7 +490,7 @@ local function DoMagicQTE(SlotsFolder, PiecesFolder)
     end
 
 end
------------------------------------------------------ 
+-----------------------------------------------------  Fist QTE
 
 local InputTableForWASD = {
     {
@@ -553,7 +561,7 @@ local function DoFistQTE(KeyHolder)
     end
 end
 
------------------------------------------------------
+----------------------------------------------------- Dagger QTE
 local LockedRings = {}
 
 local function DoDaggerQTE(RingsFolder)
@@ -603,6 +611,45 @@ local function DoDaggerQTE(RingsFolder)
     end
 end
 
+----------------------------------------------------- Sword QTE (by @teeheewinning)
+
+local PressedSwordZones = {}
+
+local function DoSwordQTE(Inset, Window)
+    if tick() < QTE_UI.SwordQTE.Debounce then
+        return
+    end
+
+    -- Aim for the LEFT edge of the stop window (earliest possible hit)
+    local WinStart = Window.AbsolutePosition.X
+    local Tolerance = 15 -- how many pixels past the left edge is acceptable
+
+    -- Find the un-pressed zone closest to the left edge (but not past it yet)
+    local BestZone = nil
+    local BestDist = math.huge
+
+    for _, child in Inset:GetChildren() do
+        local n = tonumber(child.Name)
+        if n and not PressedSwordZones[child.Address] then
+            local X = child.AbsolutePosition.X
+            -- Only consider zones that have just entered or are about to enter
+            if X >= WinStart and X <= WinStart + Tolerance then
+                local Dist = X - WinStart
+                if Dist < BestDist then
+                    BestDist = Dist
+                    BestZone = child
+                end
+            end
+        end
+    end
+
+    if BestZone then
+        PressedSwordZones[BestZone.Address] = true
+        QTE_UI.SwordQTE.Debounce = tick() + 0.05
+        PressKey(32)
+    end
+end
+
 ----------------------------------------------------- Combat thread
 
 local QTE_Locks = {}
@@ -629,6 +676,8 @@ local function CombatLoop()
                             DoMagicQTE(Data.RuneSlots, Data.RunePieces)
                         elseif QTE_Type == "DaggerQTE" then 
                             DoDaggerQTE(Data.QTE_Container)
+                        elseif QTE_Type == "SwordQTE" then
+                            DoSwordQTE(Data.Inset, Data.Window)
                         end
                         
                         QTE_Locks[QTE_Type] = false
@@ -641,6 +690,7 @@ local function CombatLoop()
                     Data.IsActive = false
                     
                     PressedIndices = {} 
+                    
                     --print("Reset pressed indices for: " .. QTE_Type)
                 end
             end
