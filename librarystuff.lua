@@ -17,6 +17,13 @@ local function PressKey(Keycode)
 		keyrelease(Keycode)
 end
 
+local function magnitude(p1, p2)
+	local dx = p2.X - p1.X
+	local dy = p2.Y - p1.Y
+	local dz = p2.Z - p1.Z
+	return math.sqrt(dx*dx + dy*dy + dz*dz)
+end
+
 local function InputFromText(Text)
     local Keycode = string.byte(Text)
     keypress(Keycode)
