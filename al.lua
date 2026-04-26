@@ -46,6 +46,12 @@ local QTE_UI = {
            ["Debounce"] = 0,
            ["IsRunning"] = false,
     },
+    ["SpearQTE"] = {
+           ["QTE_Container"] = CombatScreenGui.SpearQTE,
+           ["LastVisibleTime"] = nil,
+           ["Debounce"] = 0,
+           ["IsRunning"] = false,
+    },
 }
 
 
@@ -650,6 +656,38 @@ local function DoSwordQTE(Inset, Window)
     end
 end
 
+----------------------------------------------------- Spear QTE
+
+local function DoSpearQTE(RingsFolder)    
+    local Ring = RingsFolder:FindFirstChild("Ring")
+
+    if Ring then
+      --  print("Found ring")
+        local Transparency = GetImageTransparency(Ring.Indicator)
+        if Ring.Indicator.AbsoluteSize.X <= 1 then warn("Weird") return end 
+
+       local IsReady = (Transparency > 0.75) and (Ring.Indicator.AbsoluteSize.X < 135)
+
+       if not IsReady then  
+        --    print(Transparency, Ring.Indicator.AbsoluteSize.X)
+            return
+       end
+
+
+
+       -- print(Transparency, Ring.Indicator.AbsoluteSize.X)
+        local RingPos = GetCenter(Ring)
+        mousemoveabs(RingPos.X, RingPos.Y)
+        mousemoverel(1, 1)
+        mouse1press()
+        mouse1release()
+      --  print("Clicked ring")
+    end
+
+    task.wait(0.1)
+end
+
+
 ----------------------------------------------------- Combat thread
 
 local QTE_Locks = {}
@@ -678,6 +716,8 @@ local function CombatLoop()
                             DoDaggerQTE(Data.QTE_Container)
                         elseif QTE_Type == "SwordQTE" then
                             DoSwordQTE(Data.Inset, Data.Window)
+                        elseif QTE_Type == "SpearQTE" then 
+                            DoSpearQTE(Data.QTE_Container)
                         end
                         
                         QTE_Locks[QTE_Type] = false
