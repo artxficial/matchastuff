@@ -419,6 +419,7 @@ end
 local LastIndicatorPosition = nil
 
 local function DoBlockBar(Indicator, Target)
+
     local IsAligned, Distance = AreUIObjectsAligned(Indicator, Target)
     
     -- Method for detecting new run by @haru_ty
@@ -709,6 +710,8 @@ local function CombatLoop()
                             task.wait(0.2)
                             DoFistQTE(Data.KeyHolder)
                         elseif QTE_Type == "BlockingQTE" then
+                            memory_write("float", CombatScreenGui.Block.Inset.Block.Address + Offsets.FrameSizeX, 1.5)
+
                             DoBlockBar(Data.Indicator, Data.Target)
                         elseif QTE_Type == "MagicQTE" then
                             DoMagicQTE(Data.RuneSlots, Data.RunePieces)
