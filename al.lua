@@ -488,6 +488,7 @@ local function DoMagicQTE(SlotsFolder, PiecesFolder)
         if not IsThreadActive then
             MagicThread = true 
             local CenterPiecePosition = GetCenter(piece)
+            if CenterPiecePosition.X < 20 then MagicThread = false break end 
             local CenterSlotPosition = GetCenter(slot)
             ClickAndDragTo(CenterPiecePosition, CenterSlotPosition, 0.03, 5)
             MagicThread = false
