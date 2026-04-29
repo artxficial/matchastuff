@@ -492,6 +492,7 @@ local function DoMagicQTE(SlotsFolder, PiecesFolder)
             local CenterSlotPosition = GetCenter(slot)
             ClickAndDragTo(CenterPiecePosition, CenterSlotPosition, 0.03, 5)
             MagicThread = false
+			task.wait(0.1)
             break
             -- start the mouse thread 
         end
