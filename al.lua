@@ -758,7 +758,7 @@ local function DoThorianQTE(Container)
     PressKey(string.byte(BlockDir))
 
     print("Block from: " .. nearest.Name)
-    task.wait(.1)
+    task.wait(.04)
 end
 
 ----------------------------------------------------- Combat thread
