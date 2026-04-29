@@ -713,7 +713,7 @@ local function DoSpearQTE(RingsFolder)
     task.wait(0.1)
 end
 
------------------------------------------------------ Thorian QTE
+-----------------------------------------------------  QTE
 
 
 local BlockDirection = {
@@ -722,7 +722,7 @@ local BlockDirection = {
    ["Right"] = "D"
 }
 
-local function DoThorianQTE(Container)
+local function DoQTE(Container)
     local AttackShards = {}
 
     for _, Child in Container:GetChildren() do
@@ -758,7 +758,7 @@ local function DoThorianQTE(Container)
     PressKey(string.byte(BlockDir))
 
     print("Block from: " .. nearest.Name)
-    task.wait(.04)
+    task.wait(.08)
 end
 
 ----------------------------------------------------- Combat thread
