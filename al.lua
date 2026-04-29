@@ -39,18 +39,24 @@ local QTE_UI = {
         ["IsRunning"] = false,
     },
     ["SwordQTE"] = {
-           ["QTE_Container"] = CombatScreenGui.SwordQTE,
-           ["Inset"] = CombatScreenGui.SwordQTE.Inset,
-           ["Window"] = CombatScreenGui.SwordQTE.Inset.Window,
-           ["LastVisibleTime"] = nil,
-           ["Debounce"] = 0,
-           ["IsRunning"] = false,
+        ["QTE_Container"] = CombatScreenGui.SwordQTE,
+        ["Inset"] = CombatScreenGui.SwordQTE.Inset,
+        ["Window"] = CombatScreenGui.SwordQTE.Inset.Window,
+        ["LastVisibleTime"] = nil,
+        ["Debounce"] = 0,
+        ["IsRunning"] = false,
     },
     ["SpearQTE"] = {
-           ["QTE_Container"] = CombatScreenGui.SpearQTE,
-           ["LastVisibleTime"] = nil,
-           ["Debounce"] = 0,
-           ["IsRunning"] = false,
+        ["QTE_Container"] = CombatScreenGui.SpearQTE,
+        ["LastVisibleTime"] = nil,
+        ["Debounce"] = 0,
+        ["IsRunning"] = false,
+    },
+    ["ThorianQTE"] = {
+        ["QTE_Container"] = CombatScreenGui.ThorianQTE, 
+        ["LastVisibleTime"] = nil,
+        ["Debounce"] = 0,
+        ["IsRunning"] = false,
     },
 }
 
@@ -290,6 +296,23 @@ local function LockRotationForDuration(Ring, TargetRotation, Duration)
     end]]
 end
 
+local function GetVector2Magnitude(Pos1, Pos2)
+    local dx = Pos1.X - Pos2.X
+    local dy = Pos1.Y - Pos2.Y
+    return math.sqrt(dx * dx + dy * dy)
+end
+
+local function GetUnitDirection(FromPos, ToPos)
+    local dx = ToPos.X - FromPos.X
+    local dy = ToPos.Y - FromPos.Y
+    
+    if math.abs(dx) > math.abs(dy) then
+        return dx > 0 and "Right" or "Left"
+    else
+        return dy > 0 and "Down" or "Up"
+    end
+end
+
 ----------------------------------------------------- Helpers
 
 local function ColorsMatch(Color3_A, Color3_B)
@@ -492,7 +515,7 @@ local function DoMagicQTE(SlotsFolder, PiecesFolder)
             local CenterSlotPosition = GetCenter(slot)
             ClickAndDragTo(CenterPiecePosition, CenterSlotPosition, 0.03, 5)
             MagicThread = false
-			task.wait(0.1)
+            task.wait(0.1)
             break
             -- start the mouse thread 
         end
@@ -690,6 +713,53 @@ local function DoSpearQTE(RingsFolder)
     task.wait(0.1)
 end
 
+----------------------------------------------------- Thorian QTE
+
+
+local BlockDirection = {
+   ["Up"] = "W",
+   ["Left"] = "A",
+   ["Right"] = "D"
+}
+
+local function DoThorianQTE(Container)
+    local AttackShards = {}
+
+    for _, Child in Container:GetChildren() do
+        if table.find({"Left", "Right", "Up"}, Child.Name) then
+            if Child.ClassName == "ImageButton" then continue end 
+            table.insert(AttackShards, Child)
+        end
+    end
+
+    if #AttackShards == 0 then return end
+
+    local Home = Container.Home
+    local HomePos = Home.AbsolutePosition
+
+    local nearest = nil
+    local nearestDist = math.huge
+
+    for _, shard in AttackShards do
+        local shardPos = shard.AbsolutePosition
+        local dist = GetVector2Magnitude(HomePos, shardPos)
+        if dist < nearestDist then
+            nearestDist = dist
+            nearest = shard
+        end
+    end
+    
+    local shardPos = nearest.AbsolutePosition
+    local direction = GetUnitDirection(HomePos, shardPos)
+
+    local BlockDir = BlockDirection[direction]
+    if not BlockDir then return end
+    
+    PressKey(string.byte(BlockDir))
+
+    print("Block from: " .. nearest.Name)
+    task.wait(.1)
+end
 
 ----------------------------------------------------- Combat thread
 
@@ -723,6 +793,8 @@ local function CombatLoop()
                             DoSwordQTE(Data.Inset, Data.Window)
                         elseif QTE_Type == "SpearQTE" then 
                             DoSpearQTE(Data.QTE_Container)
+                        elseif QTE_Type == "ThorianQTE" then 
+                            DoThorianQTE(Data.QTE_Container)
                         end
                         
                         QTE_Locks[QTE_Type] = false
