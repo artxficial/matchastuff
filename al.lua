@@ -58,6 +58,16 @@ local QTE_UI = {
         ["Debounce"] = 0,
         ["IsRunning"] = false,
     },
+    ["HammerQTE"] = {
+        ["QTE_Container"] = CombatScreenGui.HammerQTE,
+        ["Gauge"] = CombatScreenGui.HammerQTE.Gauge,
+        ["Fill"] = CombatScreenGui.HammerQTE.Gauge.Fill,
+        ["Window"] = CombatScreenGui.HammerQTE.Gauge.Window,
+        ["LastVisibleTime"] = nil,
+        ["Debounce"] = 0,
+        ["IsRunning"] = false,
+        ["IsHolding"] = false,
+    }
 }
 
 
@@ -761,6 +771,40 @@ local function DoThorianQTE(Container)
     task.wait(.07)
 end
 
+----------------------------------------------------- Hammer QTE (by @tehchi)
+
+local function DoHammerQTE(Data)
+    if tick() < Data.Debounce then return end
+
+    local Fill = Data.Fill
+    local Window = Data.Window
+
+    if not Data.IsHolding then
+        keypress(32)
+        Data.IsHolding = true
+        return 
+    end
+
+    local FillSizeX = memory_read("float", Fill.Address + Offsets.FrameSizeX)
+    local WindowPosX = memory_read("float", Window.Address + Offsets.FramePositionX)
+    local WindowSizeX = memory_read("float", Window.Address + Offsets.FrameSizeX)
+
+    local FillRightEdge = FillSizeX 
+    local WindowStart = WindowPosX
+    local WindowEnd = WindowPosX + WindowSizeX
+
+    if FillRightEdge >= WindowStart and FillRightEdge <= WindowEnd then
+        keyrelease(32)
+        Data.IsHolding = false
+        Data.Debounce = tick() + 1 
+        
+    elseif FillRightEdge > WindowEnd then
+        keyrelease(32)
+        Data.IsHolding = false
+        Data.Debounce = tick() + 1
+    end
+end
+
 ----------------------------------------------------- Combat thread
 
 local QTE_Locks = {}
@@ -795,6 +839,8 @@ local function CombatLoop()
                             DoSpearQTE(Data.QTE_Container)
                         elseif QTE_Type == "ThorianQTE" then 
                             DoThorianQTE(Data.QTE_Container)
+                        elseif QTE_Type == "HammerQTE" then 
+                            DoHammerQTE(Data)
                         end
                         
                         QTE_Locks[QTE_Type] = false
