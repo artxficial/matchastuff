@@ -95,7 +95,7 @@ local function GetFilteredTable()
     for _, item in PathToThings:GetChildren() do
         local NameMatches = ValidChildren[item.Name]
         if not NameMatches then 
-            continue 
+            continue
         end 
 
         local IsTransparent = (item.Transparency == 1)
@@ -109,16 +109,15 @@ local function GetFilteredTable()
             continue
         end
 
-        local IsMesh = (ClassName == "MeshPart") and (item.MeshId ~= "rbxassetid://131427085502355")
+        --[[local IsMesh = (ClassName == "MeshPart") and (item.MeshId ~= "rbxassetid://131427085502355")
         if IsMesh then
             continue
-        end
+        end]]
 
         table.insert(PotentialObjects, item)
     end
 
     for _, item in PotentialObjects do
-
         for CategoryName, ChildToLookFor in ValidChildren do
             local FoundChild = item:FindFirstChild(ChildToLookFor)
             if FoundChild then
