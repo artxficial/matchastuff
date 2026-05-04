@@ -807,7 +807,7 @@ local function CombatLoop()
                     Data.IsActive = false
                     
                     PressedIndices = {} 
-                    
+                    LockedRings = {}
                     --print("Reset pressed indices for: " .. QTE_Type)
                 end
             end
