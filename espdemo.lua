@@ -40,23 +40,25 @@ local PathToThings = game.Workspace.IGNORE
 
 local function GetFilteredTable()
 
-	-- Needed to move categories outside of here to be accessed globally 
-	-- This makes sure no old objects are in the list
-	for CategoryName, Data in CategoryConfiguration do 
-		Data.Objects = {}
-	end
+    -- Needed to move categories outside of here to be accessed globally 
+    -- This makes sure no old objects are in the list
+    for CategoryName, Data in CategoryConfiguration do 
+        Data.Objects = {}
+    end
 
     if not game.Workspace.MAPS["GAME MAP"] then
         return {}
     end
-	
-    local PathToGenerators = game.Workspace.MAPS["GAME MAP"].Generators
-    local PathToFuseBoxes = game.Workspace.MAPS["GAME MAP"].FuseBoxes
-
-    for _, generatorModel in PathToGenerators:GetChildren() do
-        if generatorModel.PrimaryPart then
-            table.insert(CategoryConfiguration.Generator.Objects, generatorModel.PrimaryPart)
-        end
+    
+    local PathToGenerators = game.Workspace.MAPS["GAME MAP"].Tasks:FindFirstChild("Generators")
+    local PathToFuseBoxes = game.Workspace.MAPS["GAME MAP"].Tasks:FindFirstChild("FuseBoxes")
+    
+    if PathToGenerators then  
+       for _, generatorModel in PathToGenerators:GetChildren() do
+           if generatorModel.PrimaryPart then
+               table.insert(CategoryConfiguration.Generator.Objects, generatorModel.PrimaryPart)
+           end
+       end 
     end
 
     local KillerModel = game.Workspace.PLAYERS.KILLER:FindFirstChildWhichIsA("Model")
@@ -70,15 +72,15 @@ local function GetFilteredTable()
         for _, FuseBoxModel in PathToFuseBoxes:GetChildren() do 
           local IsCompleted = FuseBoxModel:GetAttribute("Inserted")
 
-		-- ESP_Utility only checks if objects are destroyed but if they arent and you dont want them to appear
-		-- in the next rescan cycle then you can do this OR you can add a visiblity toggle to its callback ( See generator callback )
+        -- ESP_Utility only checks if objects are destroyed but if they arent and you dont want them to appear
+        -- in the next rescan cycle then you can do this OR you can add a visiblity toggle to its callback ( See generator callback )
           if IsCompleted then 
-				local Tracker = ESP_Utility.TrackersToUpdate[FuseBoxModel.PrimaryPart.Address]
-				if Tracker then 
-					Tracker:Destroy()
-				end
+                local Tracker = ESP_Utility.TrackersToUpdate[FuseBoxModel.PrimaryPart.Address]
+                if Tracker then 
+                    Tracker:Destroy()
+                end
                 continue
-			end
+            end
           table.insert(CategoryConfiguration.FuseBox.Objects, FuseBoxModel.PrimaryPart)
         end
     end
@@ -163,13 +165,13 @@ local function ScanWorkspace()
               local ProgressFunction = function()
                 local genModel = Instance.Parent
                 if not genModel then
-					Tracker:Destroy()
+                    Tracker:Destroy()
                     return ""
                 end
                     
                 local progress = genModel:GetAttribute("Progress") or 0
                         
-				-- Happens only once and notifies when a generator was finished
+                -- Happens only once and notifies when a generator was finished
                 if progress == 100 and Tracker.Visible == true then notify("A generator was completed", "", 3) end -- Notifies is a generator was finished 
                         
                 if progress == 100 then Tracker.Visible = false return "" end -- Hides tracker when finished
@@ -192,24 +194,24 @@ end
 
 
 local function BuildESPSection(Tab)
-	local Section = Tab:Section("ESP", "Left")
+    local Section = Tab:Section("ESP", "Left")
 
-	for CategoryName, Data in CategoryConfiguration do 
-		local ButtonID = CategoryName.."ESP"
+    for CategoryName, Data in CategoryConfiguration do 
+        local ButtonID = CategoryName.."ESP"
         local StateChanged = function(state)
            --print(CategoryName.. ": " .. tostring(state))
-			Data.Visible = state
+            Data.Visible = state
             ScanWorkspace()
         end
         local ToggleButton = Section:Toggle(ButtonID, CategoryName .. " ESP", true, StateChanged)
-	end
+    end
 end
 
 local function InitMatchaTab()
-	-- Create the tab
+    -- Create the tab
     local Tab = UI.AddTab("Bite By Night", function(tab)
         -- ESP Section
-		BuildESPSection(tab)
+        BuildESPSection(tab)
     end)
 
     for CategoryName, Data in CategoryConfiguration do  
