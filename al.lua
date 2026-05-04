@@ -600,7 +600,7 @@ local function DoDaggerQTE(RingsFolder)
  --   print("--- Brute Force QTE  ---")
     task.wait(0.1)
     while true do
-        local children = RingsFolder:GetChildren()
+        local children =  CombatScreenGui.DaggerQTE:GetChildren()
 
         local RingsExist = false
         local NumRings = 0
@@ -807,7 +807,6 @@ local function CombatLoop()
                     Data.IsActive = false
                     
                     PressedIndices = {} 
-                    LockedRings = {}
                     --print("Reset pressed indices for: " .. QTE_Type)
                 end
             end
