@@ -4,8 +4,8 @@ local Offsets = HttpService:JSONDecode(OffsetsJSON)
 
 local TheoOffsets = HttpService:JSONDecode(game:HttpGet("https://imtheo.lol/Offsets/Offsets.json")).Offsets
 
-local PlayerGui = game.Players.LocalPlayer.PlayerGui
-local CombatScreenGui = PlayerGui.Combat
+local PlayerGui = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+local CombatScreenGui = PlayerGui:WaitForChild("Combat")
 local RunService = game:GetService("RunService")
 
 local QTE_UI = {
