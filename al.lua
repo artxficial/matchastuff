@@ -99,7 +99,7 @@ end
 local function GetTextColor(TextLabel)
     local Address = TextLabel and TextLabel.Address 
     if not Address or Address == 0 then return nil end
-    local TextColorOffset = 0xE70
+    local TextColorOffset = TheoOffsets.GuiObject.TextColor3
     
     local r = memory_read("float", Address + TextColorOffset)
     local g = memory_read("float", Address + TextColorOffset + 4)
