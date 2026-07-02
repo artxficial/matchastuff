@@ -51,34 +51,33 @@ local function GetPlayingAnimationTracks(Character)
     local visualPath = string.format("[Head: 0x%X] -> [Node 1: 0x%X]", ListHead_Ptr, firstNode)
   --  print(visualPath)
 
-   while currentNode and currentNode ~= 0 and currentNode ~= ListHead_Ptr do
-        local nextNode = memory_read("uintptr_t", currentNode)
-        
-        -- If the next node is the head, this current node is the tail/sentinel and won't hold a track
-        if nextNode == ListHead_Ptr then
-    --        print(string.format("   |__ [Tail Node 0x%X] End of list reached. Loops back to Head.", currentNode))
-           --  print(string.format("   ---> [Head: 0x%X] (Loop Completed)", ListHead_Ptr))
-            break
-        end
-
-        -- The first node (AnimationTrack) has a pointer to the next node at offset 0x10
+    while currentNode and currentNode ~= 0 and currentNode ~= ListHead_Ptr do
+        -- 1. Read the track data from the current node first
         local track = memory_read("uintptr_t", currentNode + KnownOffsets.NodeNext)
         
         if track then
             foundCount = foundCount + 1
             AnimationTracks[foundCount] = track
- --           print(string.format("   |__ [Node 0x%X] holds AnimationTrack: 0x%X", currentNode, track))
+         --   print(string.format("   |__ [Node 0x%X] holds AnimationTrack: 0x%X", currentNode, track))
         end
 
         if foundCount >= 50 then 
-            print("   |__ [MAX CAP REACHED]")
+        --    print("   |__ [MAX CAP REACHED]")
             break 
         end
 
-        if nextNode == 0 or not nextNode then
---         print("   ---> [NULL] (End of List)")
+        -- 2. Look ahead to see where we go next
+        local nextNode = memory_read("uintptr_t", currentNode)
+        
+        if nextNode == ListHead_Ptr then
+         --   print(string.format("   |__ [Node 0x%X] next node is Head. Traversal complete.", currentNode))
+         --   print(string.format("   ---> [Head: 0x%X] (Loop Completed)", ListHead_Ptr))
+            break -- Safe to exit now; we fully processed currentNode
+        elseif nextNode == 0 or not nextNode then
+         --   print("   ---> [NULL] (End of List)")
+            break
         else
-            -- -- print(string.format("   ---> [Next Node: 0x%X]", nextNode))
+         --   print(string.format("   ---> [Next Node: 0x%X]", nextNode))
         end
 
         currentNode = nextNode
