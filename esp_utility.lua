@@ -295,63 +295,84 @@ function ESP_Utility:_CreateSquare()
 	}
 end
 
+local function GetLineCount(text)
+    local _, count = string.gsub(tostring(text or ""), "\n", "")
+    return count + 1
+end
+
+function ESP_Utility:RecalculateOffsets()
+    local totalLines = 0
+
+    for _, reference in ipairs(self.DrawingOrder) do
+        local data = self.Drawings[reference]
+
+        if data and data.LineCount then
+            data.Y_Offset = totalLines + data.LineCount - 1
+            totalLines = totalLines + data.LineCount
+        end
+    end
+end
+
 function ESP_Utility:AddText(Reference, NewColor, Value, Callback)
-	if self.Drawings[Reference] then return end
+    if self.Drawings[Reference] then
+        return
+    end
 
-	if not self.DrawingOrder then
-		self.DrawingOrder = {}
-	end
+    if not self.DrawingOrder then
+        self.DrawingOrder = {}
+    end
 
-	local NewText = Drawing.new("Text")
-	NewText.Text = Value or "Callback passed, uninitialized"
-	NewText.Center = false
-	NewText.Outline = true
-	NewText.Color = NewColor or Color3.fromRGB(200, 200, 200)
+    local NewText = Drawing.new("Text")
+    NewText.Text = Value or "Callback passed, uninitialized"
+    NewText.Center = false
+    NewText.Outline = true
+    NewText.Color = NewColor or Color3.fromRGB(200, 200, 200)
 
-	self.Drawings[Reference] = {
-		Drawing = NewText,
-	}
+    local currentText = tostring((Callback and Callback()) or Value or "")
+    local currentLineCount = GetLineCount(currentText)
 
-	-- 1. Calculate the new item's line count first
-	local currentText = tostring((Callback and Callback()) or Value or "")
-	local _, newlineCount = string.gsub(currentText, "\n", "")
-	local currentLineCount = newlineCount + 1
+    self.Drawings[Reference] = {
+        Drawing = NewText,
+        Function = Callback,
+        Y_Offset = 0,
+        LineCount = currentLineCount,
+        Visible = true,
+    }
 
-	-- 2. Calculate the Start Offset by summing the HEIGHT (LineCount) of previous items
-	local totalLineHeightSoFar = 0
-	for _, existingKey in self.DrawingOrder do
-		local data = self.Drawings[existingKey]
-		if data and data.LineCount then
-			totalLineHeightSoFar = totalLineHeightSoFar + data.LineCount
-			--print("TOTAL SO FAR: ", totalLineHeightSoFar, existingKey)
-		end
-	end
+    table.insert(self.DrawingOrder, Reference)
 
-	-- 3. Assign the offset
-	local assignedOffset = totalLineHeightSoFar + currentLineCount - 1
-
-	self.Drawings[Reference] = {
-		Drawing = NewText,
-		Function = Callback or nil,
-		Y_Offset = assignedOffset,
-		LineCount = currentLineCount,
-		Visible = true,
-	}
-
-	table.insert(self.DrawingOrder, Reference)
+    self:RecalculateOffsets()
 end
 
 function ESP_Utility:ChangeText(Reference, Value, NewColor)
-	local TextData = self.Drawings[Reference] 
-	if not TextData or not TextData.LineCount then warn("Attempting to change text of a non-text object") return end 
-	if TextData.Function ~= nil then warn(string.format("TEXT: %s already has a callback assigned, remove it to use :ChangeText", Reference)) return end 
+    local TextData = self.Drawings[Reference]
 
-	local TextDrawing = TextData.Drawing
-	TextDrawing.Text = Value or TextDrawing.Text
+    if not TextData or not TextData.LineCount then
+        warn("Attempting to change text of a non-text object")
+        return
+    end
 
-	if NewColor then 
-		TextDrawing.Color = NewColor
-	end
+    if TextData.Function ~= nil then
+        warn(string.format(
+            "TEXT: %s already has a callback assigned, remove it to use :ChangeText",
+            Reference
+        ))
+        return
+    end
+
+    local TextDrawing = TextData.Drawing
+
+    if Value then
+        TextDrawing.Text = Value
+        TextData.LineCount = GetLineCount(Value)
+
+        -- Update all Y offsets since this text may have grown/shrunk
+        self:RecalculateOffsets()
+    end
+
+    if NewColor then
+        TextDrawing.Color = NewColor
+    end
 end
 
 function ESP_Utility:BuildVisualTracker()
