@@ -10,6 +10,7 @@ local KnownOffsets = {
     ["Name"] = offsets.Instance.Name, -- const
     ["TimePosition"] = offsets.AnimationTrack.TimePosition,
     ["ActiveAnimations"] = offsets.Animator.ActiveAnimations, -- const
+    ["Animation"] = offsets.AnimationTrack.Animation,
     -- Node Structure
     ["NodeNext"] = 0x10,
 }
@@ -89,9 +90,12 @@ end
 local function ExtractAnimationTrackInfo(AnimationTrackAddress)
     if not AnimationTrackAddress or AnimationTrackAddress == 0 then return nil end
 
+    local Animation = memory_read("uintptr_t", AnimationTrackAddress + KnownOffsets.Animation)
+    local AnimationIdPointer = memory_read("uintptr_t", Animation + KnownOffsets.AnimationId)
+    local AnimationId = memory_read("string", AnimationIdPointer)
+
     local NamePtr = memory_read("uintptr_t", AnimationTrackAddress + KnownOffsets.Name)
     local Name = memory_read("string", NamePtr)
-    local AnimationId = memory_read("int", AnimationTrackAddress + KnownOffsets.AnimationId)
     local TimePosition = memory_read("float", AnimationTrackAddress + KnownOffsets.TimePosition)
 
     return {
@@ -101,6 +105,7 @@ local function ExtractAnimationTrackInfo(AnimationTrackAddress)
         TimePosition = TimePosition
     }
 end
+
 
 local Signal = {}
 Signal.__index = Signal
