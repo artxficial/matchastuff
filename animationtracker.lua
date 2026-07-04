@@ -18,7 +18,7 @@ local KnownOffsets = {
 local function GetAnimatorAddress(Character)
     if not Character or Character.Address == 0 then return nil end
 
-    local Humanoid = Character:FindFirstChild("Humanoid")
+    local Humanoid = Character:FindFirstChildWhichIsA("Humanoid")
     if not Humanoid then return nil end
 
     local Animator = Humanoid:FindFirstChild("Animator")
