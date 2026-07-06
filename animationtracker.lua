@@ -203,6 +203,24 @@ function AnimationTracker:_startTrackingTimePosition(trackInfo)
     end)
 end
 
+function AnimationTracker:GetPlayingAnimations()
+    local animationList = {}
+    
+    for address, cachedInfo in pairs(self._cachedTracks) do
+        -- Dynamically read the latest TimePosition to guarantee 100% accuracy
+        local currentPosition = GetTimePosition(address) or cachedInfo.TimePosition
+        
+        table.insert(animationList, {
+            Address = cachedInfo.Address,
+            Name = cachedInfo.Name,
+            AnimationId = cachedInfo.AnimationId,
+            TimePosition = currentPosition
+        })
+    end
+    
+    return animationList
+end
+
 function AnimationTracker:Update(character)
     local tracksPlaying = GetPlayingAnimationTracks(character)
     if not tracksPlaying then return end
