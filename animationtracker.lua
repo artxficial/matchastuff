@@ -142,7 +142,6 @@ function Signal:Fire(...)
     end
 end
 
-
 local AnimationTracker = {}
 AnimationTracker.__index = AnimationTracker
 
@@ -153,111 +152,51 @@ function AnimationTracker.new()
     self.AnimationUpdated = Signal.new()
     self.AnimationRemoved = Signal.new()
     
-    self._cachedTracks = {} 
-    self._threads = {}      
-    self._threadTokens = {} -- Tracks unique IDs for thread versions
+    self._cachedTracks = {} -- No thread handles or tokens stored here anymore!
     
     return self
 end
 
--- Internal method to loop and fire updates for a specific track
-function AnimationTracker:_startTrackingTimePosition(trackInfo)
-    local trackAddress = trackInfo.Address
-
-    -- Force-kill any dangling thread for this address before making a new one
-    if self._threads[trackAddress] then
-        task.cancel(self._threads[trackAddress])
-        self._threads[trackAddress] = nil
-    end
-
-    -- Create or increment a token unique to this specific thread generation
-    local currentToken = (self._threadTokens[trackAddress] or 0) + 1
-    self._threadTokens[trackAddress] = currentToken
-
-    self._threads[trackAddress] = task.spawn(function()
-        while true do
-            -- 1. Lifecycle Check: Kill if cache cleared or if a newer thread took over the address
-            if not self._cachedTracks[trackAddress] or self._threadTokens[trackAddress] ~= currentToken then
-                break
-            end
-
-            local currentTime = GetTimePosition(trackAddress)
-            if not currentTime then 
-                break 
-            end
-
-            -- Update the cached info table with the freshest position
-            trackInfo.TimePosition = currentTime
-            
-            -- Fire the update signal out to your listeners
-            self.AnimationUpdated:Fire(trackInfo, currentTime)
-
-            task.wait(0.05) -- 20Hz stream rate
-        end
-
-        -- 2. Post-loop Cleanup: Strip reference if this specific thread finished on its own
-        if self._threadTokens[trackAddress] == currentToken then
-            self._threads[trackAddress] = nil
-            self._threadTokens[trackAddress] = nil
-        end
-    end)
-end
-
-function AnimationTracker:GetPlayingAnimations()
-    local animationList = {}
-    
-    for address, cachedInfo in pairs(self._cachedTracks) do
-        -- Dynamically read the latest TimePosition to guarantee 100% accuracy
-        local currentPosition = GetTimePosition(address) or cachedInfo.TimePosition
-        
-        table.insert(animationList, {
-            Address = cachedInfo.Address,
-            Name = cachedInfo.Name,
-            AnimationId = cachedInfo.AnimationId,
-            TimePosition = currentPosition
-        })
-    end
-    
-    return animationList
-end
-
+-- BATCH UPDATE: Reads, updates, cleans up, and returns all active animations at once
 function AnimationTracker:Update(character)
     local tracksPlaying = GetPlayingAnimationTracks(character)
-    if not tracksPlaying then return end
+    if not tracksPlaying then return {} end
 
     local currentAddresses = {}
+    local activeSnapshot = {}
 
-    -- Track processing
+    -- 1. Batch process all currently playing tracks
     for i = 1, #tracksPlaying do
         local address = tracksPlaying[i]
         currentAddresses[address] = true
 
-        if not self._cachedTracks[address] then
-            local info = ExtractAnimationTrackInfo(address)
+        local info = self._cachedTracks[address]
+        if not info then
+            info = ExtractAnimationTrackInfo(address)
             if info then
                 self._cachedTracks[address] = info
                 self.AnimationAdded:Fire(info)
-                self:_startTrackingTimePosition(info)
             end
+        end
+
+        if info then
+            local liveTime = GetTimePosition(address) or info.TimePosition
+            info.TimePosition = liveTime
+            
+            self.AnimationUpdated:Fire(info, liveTime)
+            
+            table.insert(activeSnapshot, info)
         end
     end
 
-    -- Cleanup processing
-    for address, cachedInfo in next, self._cachedTracks do
+    for address, cachedInfo in pairs(self._cachedTracks) do
         if not currentAddresses[address] then
-            -- Force terminate the thread handle immediately
-            local thread = self._threads[address]
-            if thread then
-                task.cancel(thread)
-                self._threads[address] = nil
-            end
-
-            -- Fire event and completely scrub cache/token references
-            self._threadTokens[address] = nil
             self.AnimationRemoved:Fire(cachedInfo)
             self._cachedTracks[address] = nil
         end
     end
+
+    return activeSnapshot
 end
 
 print("[AnimationTracker] Functions were imported, use Tracker:Update() in a loop")
