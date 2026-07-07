@@ -166,11 +166,6 @@ function AnimationTracker:Update(character)
     local currentAddresses = {}
     local activeSnapshot = {}
 
-    local assetId = anim.AnimationId
-    local numericId = tonumber(string.match(tostring(assetId), "%d+"))
-    
-    if numericId and table.find(self.IgnoreIds, numericId) then continue end 
-
     -- 1. Batch process all currently playing tracks
     for i = 1, #tracksPlaying do
         local address = tracksPlaying[i]
