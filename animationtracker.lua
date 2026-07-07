@@ -145,12 +145,13 @@ end
 local AnimationTracker = {}
 AnimationTracker.__index = AnimationTracker
 
-function AnimationTracker.new()
+function AnimationTracker.new(IgnoreIds)
     local self = setmetatable({}, AnimationTracker)
     
     self.AnimationAdded = Signal.new()
     self.AnimationUpdated = Signal.new()
     self.AnimationRemoved = Signal.new()
+    self.IgnoreIds = IgnoreIds or {}
     
     self._cachedTracks = {} -- No thread handles or tokens stored here anymore!
     
@@ -165,26 +166,51 @@ function AnimationTracker:Update(character)
     local currentAddresses = {}
     local activeSnapshot = {}
 
+    local assetId = anim.AnimationId
+    local numericId = tonumber(string.match(tostring(assetId), "%d+"))
+    
+    if numericId and table.find(self.IgnoreIds, numericId) then continue end 
+
     -- 1. Batch process all currently playing tracks
     for i = 1, #tracksPlaying do
         local address = tracksPlaying[i]
-        currentAddresses[address] = true
-
+        
+        -- Mark as active so your garbage collector doesn't constantly delete and re-extract ignored tracks
+        currentAddresses[address] = true 
+    
         local info = self._cachedTracks[address]
+        local newlyExtracted = false
+    
+        -- Extract and cache if it doesn't exist
         if not info then
             info = ExtractAnimationTrackInfo(address)
             if info then
                 self._cachedTracks[address] = info
-                self.AnimationAdded:Fire(info)
+                newlyExtracted = true
             end
         end
-
+    
         if info then
+            -- 2. Check the Ignore List
+            -- Assuming 'info' contains the AnimationId. If it's on the track itself, change this to address.Animation.AnimationId
+            local assetId = info.AnimationId 
+            local numericId = assetId and tonumber(string.match(tostring(assetId), "%d+"))
+    
+            -- If the ID is found in the ignore list, skip the rest of the loop
+            if numericId and table.find(self.IgnoreIds, numericId) then 
+                continue 
+            end 
+    
+            -- 3. Process Valid Tracks
+            -- Only fire Added event if it's brand new AND passed the ignore check
+            if newlyExtracted then
+                self.AnimationAdded:Fire(info)
+            end
+    
             local liveTime = GetTimePosition(address) or info.TimePosition
             info.TimePosition = liveTime
             
             self.AnimationUpdated:Fire(info, liveTime)
-            
             table.insert(activeSnapshot, info)
         end
     end
