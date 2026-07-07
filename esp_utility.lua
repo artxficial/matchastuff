@@ -191,7 +191,7 @@ function ESP_Utility:_GetDistance()
 	return magnitude(HRP.Position, self.Object.Position)
 end
 
-function ESP_Utility:_SetTextPosition(DrawingObject, Y_Offset)
+function ESP_Utility:_Position(DrawingObject, Y_Offset)
 	local Session = self.Session
 	local FontSize = DrawingObject.Size or 20
 	local Padding = 5
@@ -242,6 +242,9 @@ function ESP_Utility:_DetermineVisibility()
 end
 
 function ESP_Utility:_Update()
+
+	if not self.Name then return end 
+	
 	if not self:_IsAlive() or not self.ObjectType then 
 		self:Destroy()
 		return 
@@ -278,7 +281,7 @@ function ESP_Utility:_Update()
 			DrawingObject.Text = Callback()
 		end
 
-		self:_SetTextPosition(DrawingObject, Data.Y_Offset) 
+		self:_Position(DrawingObject, Data.Y_Offset) 
 	end
 end
 
