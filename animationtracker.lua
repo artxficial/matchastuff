@@ -1,7 +1,20 @@
-local Url = "https://offsets.imtheo.lol/Offsets.json"
 local HttpService = game:GetService("HttpService")
-local response = game:HttpGet(Url)
-local offsets = HttpService:JSONDecode(response).Offsets
+local offsets
+
+for _, url in ipairs({"https://offsets.imtheo.lol/Offsets.json", "https://artxficial.dev/misc/theo"}) do
+    local success, result = pcall(function() 
+        local data = HttpService:JSONDecode(game:HttpGet(url)) 
+        return data.Offsets or data 
+    end)
+    
+    if success and type(result) == "table" and next(result) then
+        print("[DEBUG] Successfully using offsets from: " .. url)
+        offsets = result
+        break
+    end
+end
+
+offsets = offsets or (print("[DEBUG] Both endpoints failed. Defaulting to empty table.") or {})
 
 local KnownOffsets = {
     ["AnimationId"] = offsets.Misc.AnimationId,
