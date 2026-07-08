@@ -272,6 +272,7 @@ function ESP_Utility:_Update()
 
 	-- Update texts
 	for _, TextReference in self.DrawingOrder do 
+		if not self.Name then return end 
 		local Data = self.Drawings[TextReference]
 		local DrawingObject = Data.Drawing
 		local Callback = Data.Function
