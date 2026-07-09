@@ -272,7 +272,6 @@ function ESP_Utility:_Update()
 
 	-- Update texts
 	for _, TextReference in self.DrawingOrder do 
-		if not self._Position then return end 
 		local Data = self.Drawings[TextReference]
 		local DrawingObject = Data.Drawing
 		local Callback = Data.Function
@@ -281,7 +280,8 @@ function ESP_Utility:_Update()
 		if Callback then
 			DrawingObject.Text = Callback()
 		end
-
+		
+		if not self._Position then return end 
 		self:_Position(DrawingObject, Data.Y_Offset) 
 	end
 end
