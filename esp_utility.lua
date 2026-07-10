@@ -409,6 +409,7 @@ end
 
 UpdateThread = RunService.RenderStepped:Connect(function(dt)
 	for i, v in ESP_Utility.TrackersToUpdate do 
+		if not v.Name then ESP_Utility.TrackersToUpdate[v] = nil continue end 
 		v:_Update()
 	end 
 end)
