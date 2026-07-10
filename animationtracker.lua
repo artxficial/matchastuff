@@ -24,6 +24,7 @@ local KnownOffsets = {
     ["TimePosition"] = offsets.AnimationTrack.TimePosition,
     ["ActiveAnimations"] = offsets.Animator.ActiveAnimations, -- const
     ["Animation"] = offsets.AnimationTrack.Animation,
+    ["Speed"] = offsets.AnimationTrack.Speed,
     -- Node Structure
     ["NodeNext"] = 0x10,
 }
@@ -118,12 +119,14 @@ local function ExtractAnimationTrackInfo(AnimationTrackAddress)
     local NamePtr = memory_read("uintptr_t", AnimationTrackAddress + KnownOffsets.Name)
     local Name = memory_read("string", NamePtr)
     local TimePosition = memory_read("float", AnimationTrackAddress + KnownOffsets.TimePosition)
+    local Speed = memory_read("float", AnimationTrackAddress + KnownOffsets.Speed)
 
     return {
         Address = AnimationTrackAddress,
         Name = Name,
         AnimationId = AnimationId,
-        TimePosition = TimePosition
+        TimePosition = TimePosition,
+        Speed = Speed,
     }
 end
 
@@ -233,8 +236,7 @@ function AnimationTracker:Update(character)
     return activeSnapshot
 end
 
-print("[AnimationTracker] Functions were imported, use Tracker:Update() in a loop")
+print("[AnimationTracker] Functions were imported, use Tracker:Update() in a loop v1.1")
 
 _G.AnimationTracker = AnimationTracker
 return AnimationTracker
-
