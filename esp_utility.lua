@@ -408,17 +408,30 @@ function ESP_Utility:Destroy()
 end
 
 UpdateThread = RunService.RenderStepped:Connect(function(dt)
-    for i, v in pairs(ESP_Utility.TrackersToUpdate) do 
-        if not v.Name then 
-            ESP_Utility.TrackersToUpdate[i] = nil 
-            continue 
-        end 
-        v:_Update()
+    -- 1. Take a snapshot of the current keys
+    local keys = {}
+    for i in pairs(ESP_Utility.TrackersToUpdate) do
+        table.insert(keys, i)
+    end
+
+    -- 2. Iterate over the snapshot
+    for idx = 1, #keys do
+        local i = keys[idx]
+        local v = ESP_Utility.TrackersToUpdate[i]
+        
+        -- Check if it still exists (in case it was deleted earlier in the same frame)
+        if v then
+            if not v.Name then 
+                ESP_Utility.TrackersToUpdate[i] = nil 
+                continue 
+            end 
+            v:_Update()
+        end
     end 
 end)
 
 notify("ESP thread started", "ESP_Utility", 3)
-print("[ESP_Utility] Functions were imported v1.1")
+print("[ESP_Utility] Functions were imported v1.2")
 
 _G.ESP_Utility = ESP_Utility
 return ESP_Utility
