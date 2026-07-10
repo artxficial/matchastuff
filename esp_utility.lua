@@ -408,14 +408,17 @@ function ESP_Utility:Destroy()
 end
 
 UpdateThread = RunService.RenderStepped:Connect(function(dt)
-	for i, v in ESP_Utility.TrackersToUpdate do 
-		if not v.Name then ESP_Utility.TrackersToUpdate[v] = nil continue end 
-		v:_Update()
-	end 
+    for i, v in pairs(ESP_Utility.TrackersToUpdate) do 
+        if not v.Name then 
+            ESP_Utility.TrackersToUpdate[i] = nil 
+            continue 
+        end 
+        v:_Update()
+    end 
 end)
 
 notify("ESP thread started", "ESP_Utility", 3)
-print("[ESP_Utility] Functions were imported")
+print("[ESP_Utility] Functions were imported v1.1")
 
 _G.ESP_Utility = ESP_Utility
 return ESP_Utility
