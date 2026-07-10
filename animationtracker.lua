@@ -34,7 +34,7 @@ local function GetAnimatorAddress(Character)
     local Humanoid = Character:FindFirstChildWhichIsA("Humanoid")
     if not Humanoid then return nil end
 
-    local Animator = Humanoid:FindFirstChild("Animator")
+    local Animator = Humanoid:FindFirstChildWhichIsA("Animator")
     return Animator and Animator.Address or nil
 end
 
