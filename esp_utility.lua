@@ -242,48 +242,56 @@ function ESP_Utility:_DetermineVisibility()
 end
 
 function ESP_Utility:_Update()
-
-	if not self.Name then return end 
+    -- Absolute guard clause: ensure the object and its required methods still exist
+    if not self or not self.Name or not self._IsAlive or not self._Get2D_Bounds then 
+        return 
+    end 
 	
-	if not self:_IsAlive() or not self.ObjectType then 
-		self:Destroy()
-		return 
-	end 
+    if not self:_IsAlive() or not self.ObjectType then 
+        if self.Destroy then
+            self:Destroy()
+        end
+        return 
+    end 
 
-	local min_x, min_y, max_x, max_y = self:_Get2D_Bounds()
-	local Hidden = false
+    local min_x, min_y, max_x, max_y = self:_Get2D_Bounds()
+    local Hidden = false
 
-	self.TrackerOffScreen = (min_x == nil)
+    self.TrackerOffScreen = (min_x == nil)
 
-	local ShouldRender = self:_DetermineVisibility()
-	if not ShouldRender then return end 
+    -- Double check _DetermineVisibility exists
+    if not self._DetermineVisibility then return end
+    local ShouldRender = self:_DetermineVisibility()
+    if not ShouldRender then return end 
 
-	local boxWidth = max_x - min_x
-	self.Session = {
-		CenterX = min_x + (boxWidth / 2),
-		TopY = min_y
-	}
+    local boxWidth = max_x - min_x
+    self.Session = {
+        CenterX = min_x + (boxWidth / 2),
+        TopY = min_y
+    }
 
+    -- Verify Drawings table still exists before updating
+    if not self.Drawings or not self.Drawings["Square"] then return end
+    local Square = self.Drawings["Square"].Drawing
+    Square.Position = Vector2.new(min_x, min_y)
+    Square.Size = Vector2.new(boxWidth, max_y - min_y)
 
-	-- Update Square
-	local Square = self.Drawings["Square"].Drawing
-	Square.Position = Vector2.new(min_x, min_y)
-	Square.Size = Vector2.new(boxWidth, max_y - min_y)
+    if not self.DrawingOrder then return end
+    -- Update texts
+    for _, TextReference in ipairs(self.DrawingOrder) do 
+        local Data = self.Drawings[TextReference]
+        if not Data then continue end
+        
+        local DrawingObject = Data.Drawing
+        local Callback = Data.Function
 
-	-- Update texts
-	for _, TextReference in self.DrawingOrder do 
-		local Data = self.Drawings[TextReference]
-		local DrawingObject = Data.Drawing
-		local Callback = Data.Function
-		local Index = Data.Index
-
-		if Callback then
-			DrawingObject.Text = Callback()
-		end
+        if Callback then
+            DrawingObject.Text = Callback()
+        end
 		
-		if not self._Position then return end 
-		self:_Position(DrawingObject, Data.Y_Offset) 
-	end
+        if not self._Position then return end 
+        self:_Position(DrawingObject, Data.Y_Offset) 
+    end
 end
 
 
@@ -431,7 +439,7 @@ UpdateThread = RunService.RenderStepped:Connect(function(dt)
 end)
 
 notify("ESP thread started", "ESP_Utility", 3)
-print("[ESP_Utility] Functions were imported v1.2")
+print("[ESP_Utility] Functions were imported v1.3")
 
 _G.ESP_Utility = ESP_Utility
 return ESP_Utility
