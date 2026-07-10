@@ -25,6 +25,7 @@ local KnownOffsets = {
     ["ActiveAnimations"] = offsets.Animator.ActiveAnimations, -- const
     ["Animation"] = offsets.AnimationTrack.Animation,
     ["Speed"] = offsets.AnimationTrack.Speed,
+    ["IsPlaying"] = offsets.AnimationTrack.IsPlaying,
     -- Node Structure
     ["NodeNext"] = 0x10,
 }
@@ -120,6 +121,7 @@ local function ExtractAnimationTrackInfo(AnimationTrackAddress)
     local Name = memory_read("string", NamePtr)
     local TimePosition = memory_read("float", AnimationTrackAddress + KnownOffsets.TimePosition)
     local Speed = memory_read("float", AnimationTrackAddress + KnownOffsets.Speed)
+    local IsPlaying = memory_read("byte", AnimationTrackAddress + KnownOffsets.IsPlaying)
 
     return {
         Address = AnimationTrackAddress,
@@ -127,6 +129,7 @@ local function ExtractAnimationTrackInfo(AnimationTrackAddress)
         AnimationId = AnimationId,
         TimePosition = TimePosition,
         Speed = Speed,
+        IsPlaying = IsPlaying
     }
 end
 
