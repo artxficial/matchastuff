@@ -302,6 +302,8 @@ for styleName, assets in pairs(GameConfig) do
         flatData.Style = styleName
         if data.DisplayName ~= "M2" and assets["M1Time"] then  
             flatData.ParryTime = assets["M1Time"]
+        elseif not data.ParryTime then 
+            flatData.DefaultParryTime = DefaultParryTime
         else 
             flatData.ParryTime = data.ParryTime
         end
@@ -311,6 +313,8 @@ for styleName, assets in pairs(GameConfig) do
 end
 
 GameConfig = FlattenedConfig
+
+local AnimationIdSliders = {}
 
 local function GetAllFoldersInWorkspace()
     local Folders = {}
@@ -440,6 +444,15 @@ local function LiteGrabber(Folder)
 end
 --LiteGrabber(game.ReplicatedStorage.Assets.Anims.Weapon.Spear)
 
+local function UpdateSliders(OldParryTime)
+    for animationId, Info in (GameConfig) do 
+        if AnimationIdSliders[animationId] then
+            Info.DefaultParryTime = DefaultParryTime
+            local ParryTime = Info.M1Time or Info.ParryTime or Info.DefaultParryTime
+            AnimationIdSliders[animationId]:Set(ParryTime)            
+        end
+    end
+end
 
 local scheduler = {}
 local pendingTasks = {}
@@ -468,13 +481,14 @@ end
 -- ==========================================
 
 
-local UI_Window = UI_Library:CreateWindow({ title = "Auto Parry Builder", size = Vector2.new(700, 540) })
+local UI_Window = UI_Library:CreateWindow({ title = "Auto Parry Builder", size = Vector2.new(700, 580) })
 
 local AP_Tab = UI_Window:Tab("Auto Parry", "swords")
 local Config_Tab = UI_Window:Tab("Style Configurations", "swords")
 
-local Folders_Section = AP_Tab:Section("Folders", "Left")
-local AP_Section = AP_Tab:Section("Auto Parry Configuration", "Right")
+local Config_Section = AP_Tab:Section("Global Configuration", "Left")
+local AP_Section = AP_Tab:Section("Settings", "Right")
+local Folders_Section = AP_Tab:Section("Folders", "Right")
 local ClipboardSection = AP_Tab:Section("Logging", "Left")
 
 local TargetPool_Text = Folders_Section:Label("NO TARGETS FOUND") 
@@ -547,7 +561,6 @@ local function CreateFoldersSection()
     print("[UI] Folders Section Created")
 end
 
-local AnimationIdSliders = {}
 local function CreateGroupSliders()
     local GroupedStyles = {}
     
@@ -576,7 +589,9 @@ local function CreateGroupSliders()
             
             
             AnimationIdSliders[animationId] = StyleSection:Slider("Parry Time: " .. nameLabel, 0, 0.01, 0, 1, "", function(v)
-                Info.ParryTime = v
+                if v ~= DefaultParryTime then
+                    Info.ParryTime = v                    
+                end
             end)
             
             AnimationIdSliders[animationId]:Set(Info.M1Time or Info.ParryTime or DefaultParryTime)
@@ -594,39 +609,35 @@ local function CreateAPSection()
 
     TargetFacingYou = AP_Section:Toggle("Target facing you", false)
     YouFacingTarget = AP_Section:Toggle("You facing target", true)
-
-    AP_Section:Divider("Offset")
     
-    local Offset = AP_Section:Slider("Parry offset", 0, 0.01, -0.1, 0.1, "s",function(v)
+    local Offset = Config_Section:Slider("Parry offset", 0, 0.01, -0.1, 0.1, "s",function(v)
         ParryOffset = v
     end)
     Offset:Set(ParryOffset)
-    AP_Section:Label("Shifts the parrytimes by the offset you give it. Positive moves window forward, Negative moves it backwards")    
-
-    AP_Section:Divider("Adjustments")
+    Config_Section:Label("Shifts the parrytimes by the offset you give it. Positive moves window forward, Negative moves it backwards")    
     
-    local Range = AP_Section:Slider("Auto Parry Range", 40, 1, 7, 80, "", function(v)
-        AutoParryRange = v
-    end)
-    Range:Set(AutoParryRange)
-    
-    
-    local Range = AP_Section:Slider("Auto Parry Range", 40, 1, 7, 80, "", function(v)
+    local Range = Config_Section:Slider("Auto Parry Range", 40, 1, 7, 80, "", function(v)
         AutoParryRange = v
     end)
     Range:Set(AutoParryRange)
 
-    local Time = AP_Section:Slider("Default Parry Time", 0.3, 0.01, 0, 1, "", function(v)
+    local DefaultSection = Config_Tab:Section("Default Configuration", "left")
+    
+    local Time = DefaultSection:Slider("Default Parry Time", 0.3, 0.01, 0, 1, "", function(v)
         DefaultParryTime = v
+        UpdateSliders()
     end)
     Time:Set(DefaultParryTime)
 
-    local Window = AP_Section:Slider("Default Parry Window", 0.3, 0.01, 0, 1, "", function(v)
+    DefaultSection:Divider("Window")
+    
+    local Window = DefaultSection:Slider("Default Parry Window", 0.3, 0.01, 0, 1, "", function(v)
         ParryWindow = v
+        ReleaseTime = ParryWindow/2
     end)
     Window:Set(ParryWindow)
-    AP_Section:Label("This is usually constant, don't change this.")
-    AP_Section:Label("It will start blocking at ParryTime - ParryWindow/2 and end at ParryTime + ParryWindow/2.")
+    DefaultSection:Label("This is usually constant, don't change this.")
+    DefaultSection:Label("It will start blocking at ParryTime - ParryWindow/2 and end at ParryTime + ParryWindow/2.")
     
 
 
@@ -702,8 +713,8 @@ local function CreateClipboardSection()
 end
 
 CreateFoldersSection()
-CreateGroupSliders()
 CreateAPSection()
+CreateGroupSliders()
 
 UpdateClipboardSection()
 CreateClipboardSection()
@@ -1191,10 +1202,11 @@ local function EvaluateParryTriggers()
                     baseTime *= HeightValue                    
                 end
                 
-                local parryStart = baseTime - pingDelay - ParryWindow/2
+                local parryStart = math.max(0, baseTime - pingDelay - ParryWindow/2)
                 local parryEnd = baseTime + ParryWindow/2
                 local isHeavy = attackConfig.DisplayName == "M2" or attackConfig.DisplayName == "Heavy" or attackConfig.Heavy
             
+                print(parryStart)
                 -- 5. Processed Checks
                if regData.Processed then continue end
                 
@@ -1250,10 +1262,10 @@ local function EvaluateParryTriggers()
                            if LastPendingRegData ~= regData then  
                                PendingParryTimestamp = os.clock()
                                LastPendingRegData = regData
-                            --   print("Block triggered by", regData, anim.AnimationId)
+                               print("Block triggered by", regData, anim.AnimationId)
                            elseif not PendingParryTimestamp then
                                PendingParryTimestamp = os.clock()
-                            --   print("Block re-triggered for", regData, anim.AnimationId)
+                               print("Block re-triggered for", regData, anim.AnimationId)
                            end
                        end
                     end
@@ -1438,7 +1450,7 @@ end)
 
 
 local COMBAT_TICK = 0 -- Run every frame
-local UTILITY_TICK = 0.05 -- Run 20 times per second
+local UTILITY_TICK = 0.01 -- Run 20 times per second
 local TARGET_TICK = 0.5 -- Run 2 times per second
 local LastCycleCheck = 0 
 
