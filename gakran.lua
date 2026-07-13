@@ -283,6 +283,7 @@ local DefaultParryTime = 0.1
 local CooldownTime = 0.1
 local ProbabilityToParry = 100
 local ReleaseTime = 0.3
+local PingCompensation = 0
 
 -- ==========================================
 local FlattenedConfig = {}
@@ -589,12 +590,21 @@ local function CreateAPSection()
     TargetFacingYou = AP_Section:Toggle("Target facing you", false)
     YouFacingTarget = AP_Section:Toggle("You facing target", true)
 
-    local Randomizer = AP_Section:Slider("Probability to Parry", 0, 1, 0, 100, "%",function(v)
-        ProbabilityToParry = v
+    local PingComp = AP_Section:Slider("Ping Compensation", 0, 1, -30, 30, "ms",function(v)
+        PingCompensation = v
     end)
-    Randomizer:Set(ProbabilityToParry)
+    PingComp:Set(PingCompensation)
+    AP_Section:Label("Lower ping = Shift backward (If missing a lot of parries) ")
+    AP_Section:Label("Higher ping = Shift forward (If parrying too early)")
+    
 
     AP_Section:Divider("Adjustments")
+    
+    local Range = AP_Section:Slider("Auto Parry Range", 40, 1, 7, 80, "", function(v)
+        AutoParryRange = v
+    end)
+    Range:Set(AutoParryRange)
+    
     
     local Range = AP_Section:Slider("Auto Parry Range", 40, 1, 7, 80, "", function(v)
         AutoParryRange = v
@@ -991,7 +1001,7 @@ local function EvaluateParrySuccess()
     local AttackConfig = GameConfig[AnimId]
     local ParryPressTime = string.format("%.3f", LastParryTime - RegData.StartTime - TimeBetweenPressingFandParrying)
     if tonumber(ParryPressTime) > 1 or tonumber(ParryPressTime) < 0 then
-         warn("Nope")
+    --     warn("Nope")
          return
     end     
     
@@ -1175,8 +1185,12 @@ local function EvaluateParryTriggers()
                 if HeightValue then  
                     baseTime *= HeightValue                    
                 end
-                local parryStart = baseTime - pingDelay - ParryWindow/2
-                local parryEnd = baseTime + ParryWindow/2
+
+                local PingOffset = PingCompensation/1000
+                local Window = ParryWindow + PingOffset
+                
+                local parryStart = baseTime - pingDelay - Window/2
+                local parryEnd = baseTime + Window/2
                 local isHeavy = attackConfig.DisplayName == "M2" or attackConfig.DisplayName == "Heavy" or attackConfig.Heavy
             
                 -- 5. Processed Checks
