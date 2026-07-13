@@ -178,19 +178,24 @@ local GameConfig = {
     },
     ["SluggerAnims"] = {
         ["rbxassetid://134829666925953"] = {
-            DisplayName = "1stM1"
+            DisplayName = "1stM1",
+            ParryTime = 0.24,
         },
         ["rbxassetid://104867156139010"] = {
-            DisplayName = "2ndM1"
+            DisplayName = "2ndM1",
+            ParryTime = 0.22,
         },
         ["rbxassetid://112759168172605"] = {
-            DisplayName = "3rdM1"
+            DisplayName = "3rdM1",
+            ParryTime = 0.22
         },
         ["rbxassetid://114647502301740"] = {
-            DisplayName = "4thM1"
+            DisplayName = "4thM1",
+            ParryTime = 0.19,
         },
         ["rbxassetid://118943955490014"] = {
-            DisplayName = "M2"
+            DisplayName = "M2",
+            ParryTime = 0.65,
         }
     },
     ["StrikerAnims"] = {
@@ -283,7 +288,7 @@ local DefaultParryTime = 0.1
 local CooldownTime = 0.1
 local ProbabilityToParry = 100
 local ReleaseTime = 0.3
-local PingCompensation = 0
+local ParryOffset = 0
 
 -- ==========================================
 local FlattenedConfig = {}
@@ -590,13 +595,13 @@ local function CreateAPSection()
     TargetFacingYou = AP_Section:Toggle("Target facing you", false)
     YouFacingTarget = AP_Section:Toggle("You facing target", true)
 
-    local PingComp = AP_Section:Slider("Ping Compensation", 0, 1, -30, 30, "ms",function(v)
-        PingCompensation = v
-    end)
-    PingComp:Set(PingCompensation)
-    AP_Section:Label("Lower ping = Shift backward (If missing a lot of parries) ")
-    AP_Section:Label("Higher ping = Shift forward (If parrying too early)")
+    AP_Section:Divider("Offset")
     
+    local Offset = AP_Section:Slider("Parry offset", 0, 0.01, -0.1, 0.1, "s",function(v)
+        ParryOffset = v
+    end)
+    Offset:Set(ParryOffset)
+    AP_Section:Label("Shifts the parrytimes by the offset you give it. Positive moves window forward, Negative moves it backwards")    
 
     AP_Section:Divider("Adjustments")
     
@@ -1181,16 +1186,13 @@ local function EvaluateParryTriggers()
                 -- 4. Time Math
                 local startTime = regData.StartTime
                 local currentTime = now - startTime
-                local baseTime = attackConfig.ParryTime or DefaultParryTime
+                local baseTime = (attackConfig.ParryTime or DefaultParryTime) + ParryOffset
                 if HeightValue then  
                     baseTime *= HeightValue                    
                 end
-
-                local PingOffset = PingCompensation/1000
-                local Window = ParryWindow + PingOffset
                 
-                local parryStart = baseTime - pingDelay - Window/2
-                local parryEnd = baseTime + Window/2
+                local parryStart = baseTime - pingDelay - ParryWindow/2
+                local parryEnd = baseTime + ParryWindow/2
                 local isHeavy = attackConfig.DisplayName == "M2" or attackConfig.DisplayName == "Heavy" or attackConfig.Heavy
             
                 -- 5. Processed Checks
