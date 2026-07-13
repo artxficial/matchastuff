@@ -880,7 +880,7 @@ local function GetHeightMultiplierForCharacter(TargetCharacter)
     if succ then  
         return data
     else
-        print("failed to get height")
+     --   print("failed to get height")
         return 1
     end
 end
@@ -1021,14 +1021,14 @@ local function EvaluateParrySuccess()
         local leniencyDiff = math.max(0, diff - pingLeniency)
         local accuracy = (1 - (leniencyDiff / learned.TriggerTime)) * 100
         
-        print(string.format(
+        --[[print(string.format(
             "[Learning] %s: Trigger=%.3fs (Learned=%.3fs) Accuracy=%.1f%% (Successes=%d)",
             learned.DisplayName,
             ParryPressTime,
             learned.TriggerTime,
             accuracy,
             learned.SuccessCount
-        ))
+        ))]]
         -- AnimationIdSliders[AnimId]:Set(learned.TriggerTime)
     end
     
@@ -1047,9 +1047,8 @@ local function onLocalAnimationAdded(anim)
 
         -- For someone reason it was running before UIS??
         scheduler.delay(0.01, function()
-            print(anim.Name)
             TimeBetweenPressingFandParrying = os.clock() - InputRegisteredTime
-            print("Input Latency: ", TimeBetweenPressingFandParrying)
+--            print("Input Latency: ", TimeBetweenPressingFandParrying)
             LastParryTime = os.clock()
         end)
     end
@@ -1155,7 +1154,6 @@ local function EvaluateParryTriggers()
                         AnimationId = anim.AnimationId
                     }
 
-                    print(HeightValue)
                 end
                 
                 local regData = AnimationRegistry[animKey]
@@ -1416,7 +1414,7 @@ UIS.InputBegan:Connect(function(input, gameProcessed)
             if not LastPendingRegData then return end 
             local Difference = os.clock() - LastPendingRegData.StartTime
             local string = string.format("DETECT: You pressed F at %.2f", os.clock() - LastPendingRegData.StartTime)
-            print(string)
+--            print(string)
         --end
     end
 end)
