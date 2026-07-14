@@ -23,6 +23,8 @@ local AnimationsLoggedOrder = {}
 -- Game Configuration
 -- ==========================================
 
+local GameName = "Gakuran"
+
 local GameConfig = {
     ["KarateAnims"] = {
         ["rbxassetid://137837926745158"] = {
@@ -491,11 +493,16 @@ end
 -- ==========================================
 
 
-local UI_Window = UI_Library:CreateWindow({ title = "Auto Parry Builder", size = Vector2.new(700, 580) })
+local UI_Window = UI_Library:CreateWindow({ 
+    title = "Auto Parry Builder", 
+    size = Vector2.new(700, 580),
+    configFolder = "auto_parry_builder",
+ })
 
 local AP_Tab = UI_Window:Tab("Auto Parry", "swords")
 local Config_Tab = UI_Window:Tab("Style Configurations", "swords")
 
+local Files_Section = AP_Tab:Section("Files", "Left")
 local Config_Section = AP_Tab:Section("Global Configuration", "Left")
 local AP_Section = AP_Tab:Section("Settings", "Right")
 local Folders_Section = AP_Tab:Section("Folders", "Right")
@@ -725,9 +732,25 @@ local function CreateClipboardSection()
     end
 end
 
+local function CreateFilesSection()
+
+    Files_Section:Info("Game: "..GameName)
+
+    local Load = Files_Section:Button("Load Configuration", function()
+        local configData = UI_Library:LoadConfig(GameName)
+        UI_Library:Notify("Success", "Loaded configuration")
+    end)
+
+    local Save = Files_Section:Button("Save Configuration", function()
+        UI_Library:SaveConfig(GameName)
+        UI_Library:Notify("Success", "Saved configuration")
+    end)
+end
+
 CreateFoldersSection()
 CreateAPSection()
 CreateGroupSliders()
+CreateFilesSection()
 
 UpdateClipboardSection()
 CreateClipboardSection()
