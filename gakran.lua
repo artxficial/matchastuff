@@ -633,7 +633,7 @@ local function CreateAPSection()
     
     local Window = DefaultSection:Slider("Default Parry Window", 0.3, 0.01, 0, 1, "", function(v)
         ParryWindow = v
-        ReleaseTime = ParryWindow/2
+        --ReleaseTime = ParryWindow/2
     end)
     Window:Set(ParryWindow)
     DefaultSection:Label("This is usually constant, don't change this.")
