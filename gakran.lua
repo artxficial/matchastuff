@@ -1206,7 +1206,6 @@ local function EvaluateParryTriggers()
                 local parryEnd = baseTime + ParryWindow/2
                 local isHeavy = attackConfig.DisplayName == "M2" or attackConfig.DisplayName == "Heavy" or attackConfig.Heavy
             
-                print(parryStart)
                 -- 5. Processed Checks
                if regData.Processed then continue end
                 
@@ -1262,10 +1261,10 @@ local function EvaluateParryTriggers()
                            if LastPendingRegData ~= regData then  
                                PendingParryTimestamp = os.clock()
                                LastPendingRegData = regData
-                               print("Block triggered by", regData, anim.AnimationId)
+                            --   print("Block triggered by", regData, anim.AnimationId)
                            elseif not PendingParryTimestamp then
                                PendingParryTimestamp = os.clock()
-                               print("Block re-triggered for", regData, anim.AnimationId)
+                            --   print("Block re-triggered for", regData, anim.AnimationId)
                            end
                        end
                     end
