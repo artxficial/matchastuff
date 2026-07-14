@@ -107,16 +107,21 @@ local GameConfig = {
     },
     ["BoxingAnims"] = {
         ["rbxassetid://137980914350618"] = {
-            DisplayName = "1stM1"
+            DisplayName = "1stM1",
+            ParryTime = 0.12,
         },
         ["rbxassetid://100408082509740"] = {
-            DisplayName = "2ndM1"
+            DisplayName = "2ndM1",
+            ParryTime = 0.12,
         },
         ["rbxassetid://94803478352691"] = {
-            DisplayName = "3rdM1"
+            DisplayName = "3rdM1",
+            ParryTime = 0.15,
+            
         },
         ["rbxassetid://78695517680318"] = {
-            DisplayName = "4thM1"
+            DisplayName = "4thM1",
+            ParryTime = 0.15,
         },
         ["rbxassetid://132022052139564"] = {
             DisplayName = "M2",
@@ -161,19 +166,24 @@ local GameConfig = {
     },
     ["CapoeiraAnims"] = {
         ["rbxassetid://125976167173936"] = {
-            DisplayName = "1stM1"
+            DisplayName = "1stM1",
+            ParryTime = 0.15,
         },
         ["rbxassetid://134945199381140"] = {
-            DisplayName = "2ndM1"
+            DisplayName = "2ndM1",
+            ParryTime = 0.22,
         },
         ["rbxassetid://117877243065533"] = {
-            DisplayName = "3rdM1"
+            DisplayName = "3rdM1",
+            ParryTime = 0.16,
         },
         ["rbxassetid://106965238908791"] = {
-            DisplayName = "4thM1"
+            DisplayName = "4thM1",
+            ParryTime = 0.16,
         },
         ["rbxassetid://131071815103338"] = {
-            DisplayName = "M2"
+            DisplayName = "Whirlwind",
+            ParryTime = 0.32,
         }
     },
     ["SluggerAnims"] = {
@@ -601,8 +611,6 @@ local function CreateGroupSliders()
     end
 end
 
-
-
 local function CreateAPSection()
 
     AP_Section:Divider("Conditions")
@@ -620,6 +628,11 @@ local function CreateAPSection()
         AutoParryRange = v
     end)
     Range:Set(AutoParryRange)
+
+    local Probability = Config_Section:Slider("Probability To Parry", 100, 1, 1, 100, "%", function(v)
+        ProbabilityToParry = v
+    end)
+    Probability:Set(ProbabilityToParry)
 
     local DefaultSection = Config_Tab:Section("Default Configuration", "left")
     
