@@ -29,23 +29,23 @@ local GameConfig = {
     ["KarateAnims"] = {
         ["rbxassetid://137837926745158"] = {
             DisplayName = "1stM1",
-            ParryTime = 0.15,
+            ReactionTime = 0.15,
         },
         ["rbxassetid://100981571094705"] = {
             DisplayName = "2ndM1",
-            ParryTime = 0.15,
+            ReactionTime = 0.15,
         },
         ["rbxassetid://130865087635587"] = {
             DisplayName = "3rdM1",
-            ParryTime = 0.22,
+            ReactionTime = 0.22,
         },
         ["rbxassetid://86495068205420"] = {
             DisplayName = "4thM1",
-            ParryTime = 0.22,
+            ReactionTime = 0.22,
         },
         ["rbxassetid://120393553812903"] = {
             DisplayName = "M2",
-            ParryTime = 0.3,
+            ReactionTime = 0.3,
         },
     },
 
@@ -64,7 +64,7 @@ local GameConfig = {
         },
         ["rbxassetid://78888626472394"] = {
             DisplayName = "M2",
-            ParryTime = 0.3,
+            ReactionTime = 0.3,
         },
         ["M1Time"] = 0.14,
     },
@@ -74,7 +74,7 @@ local GameConfig = {
         },
         ["rbxassetid://73748315742870"] = {
             DisplayName = "M2",
-            ParryTime = 0.3,
+            ReactionTime = 0.3,
         },
         ["rbxassetid://82903450925391"] = {
             DisplayName = "1stM1"
@@ -91,7 +91,7 @@ local GameConfig = {
     ["MuayThaiAnims"] = {
         ["rbxassetid://137034747040618"] = {
             DisplayName = "M2",
-            ParryTime = 0.3,
+            ReactionTime = 0.3,
         },
         ["rbxassetid://74960202100098"] = {
             DisplayName = "4thM1"
@@ -110,20 +110,20 @@ local GameConfig = {
     ["BoxingAnims"] = {
         ["rbxassetid://137980914350618"] = {
             DisplayName = "1stM1",
-            ParryTime = 0.12,
+            ReactionTime = 0.12,
         },
         ["rbxassetid://100408082509740"] = {
             DisplayName = "2ndM1",
-            ParryTime = 0.12,
+            ReactionTime = 0.12,
         },
         ["rbxassetid://94803478352691"] = {
             DisplayName = "3rdM1",
-            ParryTime = 0.15,
+            ReactionTime = 0.15,
             
         },
         ["rbxassetid://78695517680318"] = {
             DisplayName = "4thM1",
-            ParryTime = 0.15,
+            ReactionTime = 0.15,
         },
         ["rbxassetid://132022052139564"] = {
             DisplayName = "M2",
@@ -147,67 +147,67 @@ local GameConfig = {
         },
         ["rbxassetid://76236532060812"] = {
             DisplayName = "1stM1",
-            ParryTime = 0.15,
+            ReactionTime = 0.15,
         },
         ["rbxassetid://74206130671324"] = {
             DisplayName = "2ndM1",
-            ParryTime = 0.17,
+            ReactionTime = 0.17,
         },
         ["rbxassetid://71919935695307"] = {
             DisplayName = "3rdM1",
-            ParryTime = 0.15,
+            ReactionTime = 0.15,
         },
         ["rbxassetid://122861547142657"] = {
             DisplayName = "4thM1",
-            ParryTime = 0.21,
+            ReactionTime = 0.21,
         },
         ["rbxassetid://92851992709496"] = {
             DisplayName = "M2",
-            ParryTime = 0.35,
+            ReactionTime = 0.35,
         },
     },
     ["CapoeiraAnims"] = {
         ["rbxassetid://125976167173936"] = {
             DisplayName = "1stM1",
-            ParryTime = 0.15,
+            ReactionTime = 0.15,
         },
         ["rbxassetid://134945199381140"] = {
             DisplayName = "2ndM1",
-            ParryTime = 0.22,
+            ReactionTime = 0.22,
         },
         ["rbxassetid://117877243065533"] = {
             DisplayName = "3rdM1",
-            ParryTime = 0.16,
+            ReactionTime = 0.16,
         },
         ["rbxassetid://106965238908791"] = {
             DisplayName = "4thM1",
-            ParryTime = 0.16,
+            ReactionTime = 0.16,
         },
         ["rbxassetid://131071815103338"] = {
             DisplayName = "Whirlwind",
-            ParryTime = 0.32,
+            ReactionTime = 0.32,
         }
     },
     ["SluggerAnims"] = {
         ["rbxassetid://134829666925953"] = {
             DisplayName = "1stM1",
-            ParryTime = 0.24,
+            ReactionTime = 0.24,
         },
         ["rbxassetid://104867156139010"] = {
             DisplayName = "2ndM1",
-            ParryTime = 0.22,
+            ReactionTime = 0.22,
         },
         ["rbxassetid://112759168172605"] = {
             DisplayName = "3rdM1",
-            ParryTime = 0.22
+            ReactionTime = 0.22
         },
         ["rbxassetid://114647502301740"] = {
             DisplayName = "4thM1",
-            ParryTime = 0.19,
+            ReactionTime = 0.19,
         },
         ["rbxassetid://118943955490014"] = {
             DisplayName = "M2",
-            ParryTime = 0.65,
+            ReactionTime = 0.65,
         }
     },
     ["StrikerAnims"] = {
@@ -245,7 +245,7 @@ local GameConfig = {
         },
         ["rbxassetid://102407060635393"] = {
             DisplayName = "M2",
-            ["ParryTime"] = 0.01,
+            ["ReactionTime"] = 0.01,
         },
         ["rbxassetid://82904229252991"] = {
             DisplayName = "1stM1"
@@ -287,20 +287,24 @@ local IgnoreIds = {
 }
 
 
-local ParriedAnimation = {"rbxassetid://5645212799", "rbxassetid://5806082960", "rbxassetid://100773926241456", "rbxassetid://102823909334302", "rbxassetid://96304721384743", "rbxassetid://82979105739696", "rbxassetid://96600699015093",
+local ParriedAnimation = {"rbxassetid://100773926241456", "rbxassetid://102823909334302", "rbxassetid://96304721384743", "rbxassetid://82979105739696", "rbxassetid://96600699015093",
 "rbxassetid://138519505081692",
 }
+-- 5645212799 blocking anim
+
 local StunnedAnimation = {"rbxassetid://9598562590", "rbxassetid://9598537410", "rbxassetid://9598551746"}
-local ParryingAnimation = {"rbxassetid://5645199546", "rbxassetid://118147060185189"}
+local ParryingAnimation = {"rbxassetid://118147060185189"}
+local ParryFailed = {"rbxassetid://4210597123"} -- BlockHit
+
 
 local AutoParryRange = 10
 local MaxCycleRange = 20
 local ParryWindow = 0.06
-local DefaultParryTime = 0.1
-local CooldownTime = 0.1
 local ProbabilityToParry = 100
-local ReleaseTime = 0.3
+local DefaultReactionTime = 0.1
 local ParryOffset = 0
+local BlockHoldTime = 0.4
+
 
 -- ==========================================
 local FlattenedConfig = {}
@@ -313,11 +317,11 @@ for styleName, assets in pairs(GameConfig) do
         local flatData = table.clone(data) or {}  
         flatData.Style = styleName
         if data.DisplayName ~= "M2" and assets["M1Time"] then  
-            flatData.ParryTime = assets["M1Time"]
-        elseif not data.ParryTime then 
-            flatData.DefaultParryTime = DefaultParryTime
+            flatData.ReactionTime = assets["M1Time"]
+        elseif not data.ReactionTime then 
+            flatData.DefaultReactionTime = DefaultReactionTime
         else 
-            flatData.ParryTime = data.ParryTime
+            flatData.ReactionTime = data.ReactionTime
         end
         
         FlattenedConfig[assetId] = flatData
@@ -456,12 +460,12 @@ local function LiteGrabber(Folder)
 end
 --LiteGrabber(game.ReplicatedStorage.Assets.Anims.Weapon.Spear)
 
-local function UpdateSliders(OldParryTime)
+local function UpdateSliders(OldReactionTime)
     for animationId, Info in (GameConfig) do 
         if AnimationIdSliders[animationId] then
-            Info.DefaultParryTime = DefaultParryTime
-            local ParryTime = Info.M1Time or Info.ParryTime or Info.DefaultParryTime
-            AnimationIdSliders[animationId]:Set(ParryTime)            
+            Info.DefaultReactionTime = DefaultReactionTime
+            local ReactionTime = Info.M1Time or Info.ReactionTime or Info.DefaultReactionTime
+            AnimationIdSliders[animationId]:Set(ReactionTime)            
         end
     end
 end
@@ -513,6 +517,8 @@ local TargetPool_Text = Folders_Section:Label("NO TARGETS FOUND")
 local Hint = AP_Section:Label("You have to press X in order to target someone or turn on Auto Target Nearest")
 local AutoParryToggle = AP_Section:Toggle("Auto Parry", true):AddKeybind("g", "Toggle")
 local AutoDodgeToggle = AP_Section:Toggle("Auto Dodge", true)
+
+local ParryDebugToggle = Config_Section:Toggle("Debug Parry", false)
 
 local AutoTargetNearest = AP_Section:Toggle("Auto Target Nearest", false)
 local MuliTarget = AP_Section:Toggle("Multiple Targets", true)
@@ -605,13 +611,13 @@ local function CreateGroupSliders()
             end
             
             
-            AnimationIdSliders[animationId] = StyleSection:Slider("Parry Time: " .. nameLabel, 0, 0.01, 0, 1, "", function(v)
-                if v ~= DefaultParryTime then
-                    Info.ParryTime = v                    
+            AnimationIdSliders[animationId] = StyleSection:Slider("Reaction Time: " .. nameLabel, 0, 0.01, 0, 1, "", function(v)
+                if v ~= DefaultReactionTime then
+                    Info.ReactionTime = v                    
                 end
             end)
             
-            AnimationIdSliders[animationId]:Set(Info.M1Time or Info.ParryTime or DefaultParryTime)
+            AnimationIdSliders[animationId]:Set(Info.M1Time or Info.ReactionTime or DefaultReactionTime)
         end
         
         Number += 1
@@ -629,7 +635,7 @@ local function CreateAPSection()
         ParryOffset = v
     end)
     Offset:Set(ParryOffset)
-    Config_Section:Label("Shifts the parrytimes by the offset you give it. Positive moves window forward, Negative moves it backwards")    
+    Config_Section:Label("Positive moves window forward making you parry later, Negative moves it backwards making you parry earlier")    
     
     local Range = Config_Section:Slider("Auto Parry Range", 40, 1, 7, 80, "", function(v)
         AutoParryRange = v
@@ -643,11 +649,12 @@ local function CreateAPSection()
 
     local DefaultSection = Config_Tab:Section("Default Configuration", "left")
     
-    local Time = DefaultSection:Slider("Default Parry Time", 0.3, 0.01, 0, 1, "", function(v)
-        DefaultParryTime = v
+    local Time = DefaultSection:Slider("Default Reaction Time", 0.3, 0.01, 0, 1, "", function(v)
+        DefaultReactionTime = v
         UpdateSliders()
     end)
-    Time:Set(DefaultParryTime)
+    Time:Set(DefaultReactionTime)
+    DefaultSection:Label("Reaction time is the time you press F from the moment the animation starts playing. It does not account for ping")
 
     DefaultSection:Divider("Window")
     
@@ -657,10 +664,7 @@ local function CreateAPSection()
     end)
     Window:Set(ParryWindow)
     DefaultSection:Label("This is usually constant, don't change this.")
-    DefaultSection:Label("It will start blocking at ParryTime - ParryWindow/2 and end at ParryTime + ParryWindow/2.")
     
-
-
 end
 
 local function CreateClipboardSection()
@@ -817,6 +821,7 @@ local function ListenForOrbs()
                 if distance <= PARRY_DISTANCE and (tick() - lastParryAt >= 0.08) then
                     lastParryAt = tick()
                     
+                    print("Ok")
                     BlockStart()
                     BlockEnd()
                     
@@ -841,7 +846,6 @@ end
 local ParryKey = string.byte("F")
 local DodgeKey = string.byte("Q")
 
-local LastParryTime = 0
 local KeyHeld = false
 local TriggerParry = false
 
@@ -866,7 +870,7 @@ local SelectAllMode = true
 local TargetCharacters = {}
 local EspTrackers = {} 
 
-local PendingParryTimestamp = nil 
+local PendingReactionTimestamp = nil 
 local EspTracker = nil
 local CurrentIndex = 1
 local COLOR_WHITE = Color3.fromRGB(255, 255, 255)
@@ -877,6 +881,26 @@ local AnimationRegistry = {}
 local LastPendingRegData = nil
 local InputRegisteredTime = nil
 local TimeBetweenPressingFandParrying = nil
+
+local InputRegisteredTime = nil
+local ParryRegisteredTime = nil
+local InputLatency = 0 -- (Parry - Input)
+
+
+local ParryState = {
+    IDLE = "idle",
+
+    INPUT_PENDING = "input_pending",   -- F was pressed locally, waiting for animation to appear
+    PARRYING = "parrying",             -- Animation just appeared
+    PARRYINGFAILED = "parryingfailed",       -- Animation didn't appear (Happens when you're on parry cooldown)
+
+    STUNNED = "stunned",
+    WINDOW_EXCEEDED = "window_exceeded", -- If you exceed the window cuz ur not targeting or ur
+
+    SUCCESS = "parrysuccess"       -- Parrying animation was detected so its parrying right now
+}
+
+local CurrentParryState = ParryState.IDLE
 -- ==========================================
 -- Helpers
 -- ==========================================
@@ -948,13 +972,11 @@ local function GetHeightMultiplierForCharacter(TargetCharacter)
 end
 
 local function ResetParryState()
-    PendingParryTimestamp = nil
-    LastPendingRegData = nil
     KeyHeld = false
     ReleaseDeadline = 0
---    LastParryTime = 0
     TimeBetweenpressingFandParrying = nil
-    keyrelease(ParryKey) 
+   -- warn("RELEASE")
+    BlockEnd()
 end
 
 function Dodge()
@@ -968,13 +990,31 @@ function Dodge()
     --  mouse2click()    
 end
 
-function BlockStart(now, duration)
-    local now = now or os.clock()
-    
-    local holdTime = duration or ReleaseTime
+function BlockStart(StartTime, HoldFor)
+    if not StartTime then  
+        warn("Lacking a start time")
+        return
+    end
 
-    ReleaseDeadline = now + holdTime    
---    print(now, duration, "attempted block", holdTime and holdTime - now)
+    if ParryRegisteredTime then  
+       local TimeBetweenLastParry = os.clock() - ParryRegisteredTime
+         if TimeBetweenLastParry < 0.8 then  
+             print("parry is gonna be on cooldown")
+             return
+         end 
+    end
+
+    if CurrentParryState ~= ParryState.IDLE then  
+        warn("tried to press in a non idle state")
+        return
+    end
+
+
+    local HoldFor = HoldFor or BlockHoldTime
+    ReleaseDeadline = StartTime + HoldFor   
+
+    --print(now, duration, "attempted block", holdTime and holdTime - now)
+
     KeyHeld = true
     
     if AutoParryToggle.Get() == true then
@@ -1000,142 +1040,286 @@ function BlockEnd()
 end
 
 
+-- ==========================================
+-- STATE MACHINE
+-- ==========================================
+
+local function TransitionToState(newState)
+    print(string.format("[Parry] %s -> %s", CurrentParryState, newState))
+    CurrentParryState = newState
+end
+
+--                  ==[Input State]==
+-- Local F keypress
+local function OnInputF()
+
+    if CurrentParryState == ParryState.IDLE then
+        InputRegisteredTime = os.clock()
+        TransitionToState(ParryState.INPUT_PENDING)
+    else
+    --    print("F was pressed while machine wasnt idle")
+    end
+end
+
+
+local function DebugParry()
+-- 1. Network Variables (These never rely on the parry window data, so we always calculate them)
+    local WeActuallyBlockedAt = ParryRegisteredTime
+    local WeWantedToBlockAt = InputRegisteredTime
+    local TimeTheServerReceived = InputLatency / 2
+
+    if LastPendingRegData then
+        -- 2. Animation Variables (Only extracted if the data actually exists)
+        local AnimationStartTime = LastPendingRegData.StartTime
+        local BlockStart = LastPendingRegData.BlockStart
+        local BlockExpire = LastPendingRegData.BlockExpire
+        
+        -- Relative Offsets (How far into the animation the window is)
+        local RelativeBlockStart = BlockStart - AnimationStartTime   -- e.g., 0.300s
+        local RelativeBlockExpire = BlockExpire - AnimationStartTime -- e.g., 0.650s
+        
+        -- Timeline Calculations
+        local ClientReactionTime = WeWantedToBlockAt - AnimationStartTime -- Relative to Anim Start (0)
+        local ServerRelativeTime = (WeActuallyBlockedAt - TimeTheServerReceived) - AnimationStartTime -- Relative to Anim Start (0)
+        
+        local IsSuccess = (ClientReactionTime >= RelativeBlockStart and ClientReactionTime <= RelativeBlockExpire)        
+        ----------------------------------------------------------------------
+        -- FULL DIAGNOSTICS LOG (Data Exists)
+        ----------------------------------------------------------------------
+        print(string.format(
+            "\n================ PARRY DIAGNOSTICS ================\n" ..
+            "[NETWORK STATE]\n" ..
+            "Total Input Latency:  %.3fs\n" ..
+            "One-Way Server Delay: %.3fs\n" ..
+            "---------------------------------------------------\n" ..
+            "[ANIMATION TIMELINE]\n" ..
+            "Target Parry Window:  %.3fs to %.3fs\n" ..
+            "Pressed F At:    %.3fs\n" ..
+            "Parry Registered At:  %.3fs (ONE-WAY)\n" ..
+            "---------------------------------------------------\n" ..
+            "[VERDICT]\n" ..
+            "Status:               %s\n" ..
+            "===================================================",
+            InputLatency,
+            TimeTheServerReceived,
+            RelativeBlockStart, 
+            RelativeBlockExpire,
+            ClientReactionTime,
+            ServerRelativeTime,
+            IsSuccess and "[SUCCESS]" or "[MISSED WINDOW]"
+        ))
+    else
+        ----------------------------------------------------------------------
+        -- LATENCY ONLY DIAGNOSTICS LOG (No Parry Data)
+        ----------------------------------------------------------------------
+        print(string.format(
+            "\n============ LATENCY ONLY DIAGNOSTICS ============\n" ..
+            "[NETWORK STATE]\n" ..
+            "Total Input Latency:  %.3fs\n" ..
+            "One-Way Server Delay: %.3fs\n" ..
+            "---------------------------------------------------\n" ..
+            "[ANIMATION TIMELINE]\n" ..
+            "No active parry window / registration data found.\n" ..
+            "===================================================",
+            InputLatency,
+            TimeTheServerReceived
+        ))
+    end
+end
+
+-- Parrying animation detected
+local function OnParryingAnimationSuccess()
+    if CurrentParryState == ParryState.INPUT_PENDING then
+        ParryRegisteredTime = os.clock()
+        InputLatency = os.clock() - InputRegisteredTime
+
+        if ParryDebugToggle:Get() then  
+            DebugParry()
+        end
+        
+        TransitionToState(ParryState.PARRYING)
+    end
+end
+
+-- Parrying window passed without parrying
+local function OnParryingAnimationFailed()
+    if CurrentParryState == ParryState.INPUT_PENDING then
+        TransitionToState(ParryState.PARRYINGFAILED)
+        ResetParryState()
+        TransitionToState(ParryState.IDLE)
+    end
+end
+
+--                  ==[Parrying State]==
+-- We parried but we didn't get a parry success in the time frame
+
+local StunToken = 0
+local function OnStunned()
+    if CurrentParryState ~= ParryState.STUNNED then 
+        TransitionToState(ParryState.STUNNED)
+    end
+
+    StunToken += 1
+    local MyToken = StunToken
+    
+    
+    scheduler.delay(0.3, function()
+        if MyToken == StunToken then 
+            BlockEnd()
+            TransitionToState(ParryState.IDLE)            
+        end
+    end)
+end
+
+
+local function OnSuccessfulParry()
+    if CurrentParryState == ParryState.PARRYING then  
+
+        local AnimId = LastPendingRegData.AnimationId
+        local AttackConfig = GameConfig[AnimId]
+        local ParryPressTime = tonumber(InputRegisteredTime - LastPendingRegData.StartTime)
+        
+        -- SANITY CHECK happens when we evaludte outside of parrying
+        if ParryPressTime > 1 or ParryPressTime < 0 then
+        --    print("HERE", ParryPressTime, os.clock() - InputRegisteredTime, os.clock() - LastPendingRegData.StartTime)
+        --    warn("AAAAAAA")
+            return
+        end
+        
+        -- NOTIFY UI
+        UI_Library:Notify(
+            "Parry Success", 
+            string.format("%.3fs  - %s %s", 
+                ParryPressTime, 
+                AttackConfig.Style, 
+                AttackConfig.DisplayName
+            )
+        )
+        
+        LastPendingRegData.LearnedParryTime = ParryPressTime
+        LastPendingRegData.Success = true
+        --LastPendingRegData.Processed = true
+
+        -- CLEANUP
+        --InputRegisteredTime = nil
+        ParryRegisteredTime = 0
+        
+        ResetParryState()
+    --    TransitionToState(ParryState.SUCCESS)
+    --    TransitionToState(ParryState.IDLE)
+    else
+    --    warn("Tried to evaluate outside of parrying")
+    --    print(CurrentParryState)
+    end
+end
+
+
+local function OnWindowExceeded()
+    if CurrentParryState == ParryState.PARRYING then 
+        if LastPendingRegData and LastPendingRegData.Success then  
+            --print("Exceeded because success")
+            LastPendingRegData.Success = false
+            TransitionToState(ParryState.IDLE)
+        --[[elseif os.clock() > ReleaseDeadline then
+            TransitionToState(ParryState.WINDOW_EXCEEDED)
+            print(string.format(
+                "[PARRY FAILED] Player missed the window. Expired %.3fs ago",
+                os.clock() - ReleaseDeadline
+            ))
+            --ResetParryState()]]
+        end
+    --    TransitionToState(ParryState.IDLE)
+    --    OnStunned()
+    end
+end
+
 local function ParryTask()
     local now = os.clock()
 
-    if KeyHeld then
-        local isExpired = (now >= ReleaseDeadline)
-        
-        if isExpired then
-            BlockEnd()
-        end
+    if KeyHeld and os.clock() > ReleaseDeadline then
+        BlockEnd()
     end
 
-    if PendingParryTimestamp then
-        local latency = now - PendingParryTimestamp
+    if CurrentParryState == ParryState.INPUT_PENDING then
+        local MaxLatency = 0.5 -- This is the maximum time we wait for the parrying animation to appear, if it doesn't appear it means parry cooldown
+        local TimePassedSinceFWasPressed = now - InputRegisteredTime
+
+        local ActiveAnims = GetActiveAnimationsForCharacterAsDictionary(LocalPlayer.Character)
+       -- print(ActiveAnims)
         
-        if os.clock() - LastParryTime < 0.1 then
-            print("Attempted to parry but on cooldown")
-            return
+        if ActiveAnims and ActiveAnims[ParryingAnimation[1]] then  
+            OnParryingAnimationSuccess()
         end
-        -- THEN check expiration
-        local isExpired = (latency > ParryWindow)
+       
+
+        --[[ if table.find(ParriedAnimation, animId) then  
+            OnSuccessfulParry()
+        end]]
+
+        if TimePassedSinceFWasPressed > MaxLatency then
+            warn(string.format("Parrying animation didn't appear, probably on CD MAX: %.2f | TIME: %.2f", MaxLatency, TimePassedSinceFWasPressed))
+            OnParryingAnimationFailed()
+            TransitionToState(ParryState.IDLE)
+        end
+    
+    
+    elseif CurrentParryState == ParryState.PARRYING then
+
+        if not LastPendingRegData then 
+            TransitionToState(ParryState.IDLE) 
+            return 
+        end
+
+        local AnimationStartTime = LastPendingRegData.StartTime -- Absolute timestamp (os.clock)
+        local BlockStart = LastPendingRegData.BlockStart       -- Absolute timestamp (os.clock)
+        local BlockExpire = LastPendingRegData.BlockExpire     -- Absolute timestamp (os.clock)
+
+        -- Relative Offsets (How far into the animation the window is)
+        local RelativeBlockStart = BlockStart - AnimationStartTime   -- e.g., 0.300s
+        local RelativeBlockExpire = BlockExpire - AnimationStartTime -- e.g., 0.650s
+
         
-        if isExpired then
-            warn(string.format("[Debug] Parry intent expired after %.3fs", latency))
-            ResetParryState()
-        else
-         --   print(string.format("[Debug] Executing parry! Latency: %.3fs", latency))
-            BlockStart(PendingParryTimestamp)
-            PendingParryTimestamp = nil
+        local CurrentTime = os.clock()
+        
+        if CurrentTime > BlockExpire then
+            OnWindowExceeded()
         end
+
+    --    TransitionToState(ParryState.IDLE)
     end
 end
+
+-- ==========================================
+
 
 local ParryLearningLog = {}  -- {[animId] = {TriggerTime, Style, DisplayName, Count}}
-
-local function EvaluateParrySuccess()
-    local RegData
-
-    local newestTime = 0
-    local RegData = nil
-
-    for i, v in AnimationRegistry do  
-        if v.StartTime > newestTime then 
-            newestTime = v.StartTime
-            RegData = v
-        end
-    end
-
-    if not TimeBetweenPressingFandParrying then return end 
-
-    local AnimId = RegData.AnimationId
-    local AttackConfig = GameConfig[AnimId]
-    local ParryPressTime = string.format("%.3f", LastParryTime - RegData.StartTime - TimeBetweenPressingFandParrying)
-    if tonumber(ParryPressTime) > 1 or tonumber(ParryPressTime) < 0 then
-    --     warn("Nope")
-         return
-    end     
-    
-    UI_Library:Notify(
-        "Parry status", 
-        "success! Evaluated at " .. ParryPressTime .. "s for " .. AttackConfig.Style .. " " .. AttackConfig.DisplayName
-    )
-    
-    -- Record parry success and update learning log
-    if not ParryLearningLog[AnimId] then
-        ParryLearningLog[AnimId] = {
-            TriggerTime = tonumber(ParryPressTime),
-            Style = AttackConfig.Style,
-            DisplayName = AttackConfig.DisplayName,
-            SuccessCount = 1,
-            AttemptCount = 1,
-        }
-    else
-        local learned = ParryLearningLog[AnimId]
-        learned.SuccessCount = learned.SuccessCount + 1
-        learned.AttemptCount = learned.AttemptCount + 1
-        --learned.TriggerTime = (learned.TriggerTime + tonumber(ParryPressTime)) / 2
-        learned.TriggerTime = ((learned.TriggerTime * (learned.AttemptCount - 1)) + tonumber(ParryPressTime)) / learned.AttemptCount
-
-        local pingLeniency = 0.1 
-        local diff = math.abs(tonumber(ParryPressTime) - learned.TriggerTime)
-        local leniencyDiff = math.max(0, diff - pingLeniency)
-        local accuracy = (1 - (leniencyDiff / learned.TriggerTime)) * 100
-        
-        --[[print(string.format(
-            "[Learning] %s: Trigger=%.3fs (Learned=%.3fs) Accuracy=%.1f%% (Successes=%d)",
-            learned.DisplayName,
-            ParryPressTime,
-            learned.TriggerTime,
-            accuracy,
-            learned.SuccessCount
-        ))]]
-        -- AnimationIdSliders[AnimId]:Set(learned.TriggerTime)
-    end
-    
-    ResetParryState()
-end
 
 local function onLocalAnimationAdded(anim)
     local animId = anim.AnimationId
 
     if table.find(ParriedAnimation, animId) then  
-       EvaluateParrySuccess()
+        OnSuccessfulParry()
     end
 
     if table.find(ParryingAnimation, animId) then
         if not InputRegisteredTime then return end 
 
         -- For someone reason it was running before UIS??
-        scheduler.delay(0.01, function()
-            TimeBetweenPressingFandParrying = os.clock() - InputRegisteredTime
---            print("Input Latency: ", TimeBetweenPressingFandParrying)
-            LastParryTime = os.clock()
-        end)
+       --scheduler.delay(0.01, function()
+          --  if InputRegisteredTime then
+                --EvaluateParrySuccess()
+                OnParryingAnimationSuccess()
+          --  end
+       -- end)
     end
     
-    --[[if table.find(StunnedAnimation, animId) then  
-        Stunned = true
-        
-        currentStunToken = currentStunToken + 1
-        local myToken = currentStunToken
-        
-        -- Works exactly like task.delay!
-        scheduler.delay(0.2, function()
-            if currentStunToken == myToken then
-                Stunned = false
-            end
-        end)
-    end]]
+    if table.find(StunnedAnimation, animId) then
+        -- keypress(string.byte()) if u f in a stun u get a shaky block 
+       OnStunned()
+    end
 end
 
-
 local AnimationAdded = LocalTracker.AnimationAdded:Connect(onLocalAnimationAdded)
-
--- ==========================================
--- Evaluation & Target Handling
--- ==========================================
 
 local function LogAnimation(assetId, trackInfo)
     if not AnimationsLoggedCache[assetId] then
@@ -1158,163 +1342,243 @@ function GetActiveAnimationsForCharacterAsDictionary(character)
     return ReturnTable
 end
 
+-- ==========================================
+-- Parry Evaluation
+-- ==========================================
+
 local DodgeLockoutEnd = 0
 
-local function EvaluateParryTriggers()
+local function ValidateLocalCharacter()
     local localCharacter = LocalPlayer and LocalPlayer.Character
     local localRoot = localCharacter and localCharacter:FindFirstChild("HumanoidRootPart")
-    if not localRoot or Stunned then return end
+    if not localRoot or Stunned then return nil end
+    return localCharacter, localRoot
+end
 
-    local currentActiveIds = {}
+local function ValidateTargetCharacter(character)
+    local targetRoot = character:FindFirstChild("HumanoidRootPart")
+    if not targetRoot then return nil end
+    return targetRoot
+end
+
+local function CheckCharacterDistance(localRoot, targetRoot)
+    return (targetRoot.Position - localRoot.Position).Magnitude
+end
+
+local function UpdateCharacterESP(character, Distance)
+    if not AutoParryToggle.Get() then 
+        if EspTrackers[character] and EspTrackers[character].ChangeText then  
+            EspTrackers[character]:ChangeText("Name", "AUTO PARRY IS DISARMED", COLOR_RED)  
+        end
+        return true
+    elseif Distance > AutoParryRange then
+        if EspTrackers[character] and EspTrackers[character].ChangeText then  
+            EspTrackers[character]:ChangeText("Name", character.Name.. " | OUT OF RANGE", COLOR_RED)  
+        end
+        return false
+    else
+        if EspTrackers[character] and EspTrackers[character].ChangeText then  
+            EspTrackers[character]:ChangeText("Name", character.Name.. " IN RANGE", COLOR_GREEN)  
+        end
+        return true
+    end
+end
+
+local function CalculateParryTiming(attackConfig, StartTime)
     
-    local pingDelay = (GetPingValue() / 1000) / 2 
-
-    for _, character in ipairs(TargetCharacters) do
-            local targetRoot = character:FindFirstChild("HumanoidRootPart")
-            if not targetRoot then continue end
+    local optimalReactionTime = (attackConfig.ReactionTime or DefaultReactionTime)
+    local adjustedReactionTime = optimalReactionTime + ParryOffset -- - pingDelay
     
-            local Distance = (targetRoot.Position - localRoot.Position).Magnitude
-            if not AutoParryToggle.Get() then 
-                if EspTrackers[character] and EspTrackers[character].ChangeText then  
-                    EspTrackers[character]:ChangeText("Name", "AUTO PARRY IS DISARMED", COLOR_RED)  
-                end
-            elseif Distance < AutoParryRange then 
-                if EspTrackers[character] and EspTrackers[character].ChangeText then  
-                    EspTrackers[character]:ChangeText("Name", character.Name.. " IN RANGE", COLOR_GREEN)  
-                end
-            elseif Distance > AutoParryRange then
-                if EspTrackers[character] and EspTrackers[character].ChangeText then  
-                    EspTrackers[character]:ChangeText("Name", character.Name.. " | OUT OF RANGE", COLOR_RED)  
-                end
-                continue
-            end
-            local HeightValue = 1 --GetHeightMultiplierForCharacter(character)
-           
-            local activeAnimations = AnimationTracker:Update(character)
-            if not activeAnimations or #activeAnimations == 0 then continue end
-            local now = os.clock() 
+    local parryWindowStart = adjustedReactionTime
+    local parryWindowEnd = adjustedReactionTime + ParryWindow
 
-            for index, anim in ipairs(activeAnimations) do
-                if not anim.AnimationId then continue end
-                local attackConfig = GameConfig[tostring(anim.AnimationId)]
-                if not attackConfig then continue end 
-            
-                local animKey = anim.Address or anim 
-                currentActiveIds[animKey] = true
+    local ClockStart = StartTime + parryWindowStart
+    local ClockEnd = StartTime + parryWindowEnd
+    
+    return ClockStart, ClockEnd
+end
 
-                local currentTrackTime = anim.TimePosition or 0
-                local currentClockTime = os.clock()
-                
-                if not AnimationRegistry[animKey] then
-                    AnimationRegistry[animKey] = {
-                        StartTime = now - currentTrackTime,
-                        Processed = false,
-                        Snapshot = false,
-                        LastTime = currentClockTime,
-                        CurrentTrackTime = currentTrackTime,
-                        Ignore = false,
-                        AnimationId = anim.AnimationId
-                    }
+local function UpdateAnimationRegistry(animKey, anim, now, currentTrackTime, attackConfig)
 
-                end
-                
-                local regData = AnimationRegistry[animKey]
-                
-                if regData.CurrentTrackTime and (currentTrackTime < regData.CurrentTrackTime - 0.1) then
-                    regData.Processed = false
-                    regData.Snapshot = false
-                    regData.StartTime = now - currentTrackTime
-                end
-                
-                regData.LastTime = currentClockTime
-                regData.CurrentTrackTime = currentTrackTime
-                
-            
-                -- 4. Time Math
-                local startTime = regData.StartTime
-                local currentTime = now - startTime
-                local baseTime = (attackConfig.ParryTime or DefaultParryTime) + ParryOffset
-                if HeightValue then  
-                    baseTime *= HeightValue                    
-                end
-                
-                local parryStart = math.max(0, baseTime - pingDelay - ParryWindow/2)
-                local parryEnd = baseTime + ParryWindow/2
-                local isHeavy = attackConfig.DisplayName == "M2" or attackConfig.DisplayName == "Heavy" or attackConfig.Heavy
-            
-                -- 5. Processed Checks
-               if regData.Processed then continue end
-                
-                if attackConfig.ParryFunction and currentTime <= parryEnd then
+    if not AnimationRegistry[animKey] then
+        local adjustedNow = now - currentTrackTime
+        local BlockStart, BlockExpire = CalculateParryTiming(attackConfig, adjustedNow)
 
-                    attackConfig.ParryFunction({
-                        RegistryData = regData,
-                        Mob = character,
-                        AnimationData = anim,
-                        AnimationTracker = AnimationTracker,
-                    })
-                    continue
-                end
-            
-                -- 6. Direction Checks
-                if character.Address ~= localCharacter.Address then
-                    local direction = (targetRoot.Position - localRoot.Position).Unit 
-                    if not isHeavy then  
-                       if TargetFacingYou.Get() and targetRoot.CFrame.LookVector:Dot(-direction) < 0.25 then continue end
-                       if YouFacingTarget.Get() and localRoot.CFrame.LookVector:Dot(direction) < 0.25 then continue end
-                    end
-                end
+        AnimationRegistry[animKey] = {
+            StartTime = adjustedNow,
+            Processed = false,
+            CurrentClockTime = os.clock(),
+            CurrentTrackTime = currentTrackTime,
+            ReactionTime = attackConfig,
+            Ignore = false,
+            AnimationId = anim.AnimationId,
+            DidALoop = false,
+            BlockStart = BlockStart,
+            BlockExpire = BlockExpire,
+            RandomNum = math.random(1, 100),
+        }
+    end
+    
+    local regData = AnimationRegistry[animKey]
+    
+    if regData.CurrentTrackTime and (currentTrackTime < regData.CurrentTrackTime) then
+        local BlockStart, BlockExpire = CalculateParryTiming(attackConfig, now - currentTrackTime)
+        
+        regData.Processed = false
+        regData.DidALoop = true
+        warn("Loop detected")
+        regData.BlockStart = BlockStart
+        regData.BlockExpire = BlockExpire
+        regData.StartTime = now - currentTrackTime
+    end
+    
+    regData.CurrentClockTime = os.clock()
+    regData.CurrentTrackTime = currentTrackTime
 
-                local RandomNum = math.random(1,100)
-                
-                if RandomNum > ProbabilityToParry then  
-                    regData.Processed = true
-                    continue
-                end
-                -- 7. Execute Actions
-                if currentTime >= parryStart and currentTime <= parryEnd then
-                    
-                    if PendingParryTimestamp then
-                        return  -- Already have a pending parry, skip this one
-                    end
-
-                    if attackConfig.Jump then 
-                        task.spawn(function()
-                            keypress(32)
-                            task.wait(.06)
-                            keyrelease(32)                      
-                        end)
-     
-                        DodgeLockoutEnd = os.clock() + 0.2
-                    elseif isHeavy and AutoDodgeToggle.Get() then
-                        Dodge()
-                        DodgeLockoutEnd = os.clock() + 0.2
-                    else 
-                       if now > DodgeLockoutEnd then 
-                        
-                            DodgeLockoutEnd = os.clock() + 0.2
-                    
-                           if LastPendingRegData ~= regData then  
-                               PendingParryTimestamp = os.clock()
-                               LastPendingRegData = regData
-                            --   print("Block triggered by", regData, anim.AnimationId)
-                           elseif not PendingParryTimestamp then
-                               PendingParryTimestamp = os.clock()
-                            --   print("Block re-triggered for", regData, anim.AnimationId)
-                           end
-                       end
-                    end
-                end
-            end
-            
+    if LastPendingRegData == regData then
+        LastPendingRegData = regData
     end
 
-    for key in pairs(AnimationRegistry) do
-        if not currentActiveIds[key] then
-            AnimationRegistry[key] = nil
+    return regData
+end
+
+local function CheckAnimationDirection(character, localCharacter, localRoot, targetRoot, attackConfig)
+    if character.Address == localCharacter.Address then return true end
+    
+    local direction = (targetRoot.Position - localRoot.Position).Unit
+    local isHeavy = attackConfig.DisplayName == "M2" or attackConfig.DisplayName == "Heavy" or attackConfig.Heavy
+    
+    if not isHeavy then  
+        if TargetFacingYou.Get() and targetRoot.CFrame.LookVector:Dot(-direction) < 0.25 then return false end
+        if YouFacingTarget.Get() and localRoot.CFrame.LookVector:Dot(direction) < 0.25 then return false end
+    end
+    
+    return true
+end
+
+local function ExecuteParry(regData, attackConfig)
+    local isHeavy = attackConfig.DisplayName == "M2" or attackConfig.DisplayName == "Heavy" or attackConfig.Heavy
+
+    if attackConfig.Jump then 
+        task.spawn(function()
+            keypress(32)
+            task.wait(.06)
+            keyrelease(32)                      
+        end)
+        DodgeLockoutEnd = os.clock() + 0.2
+    elseif isHeavy and AutoDodgeToggle.Get() then
+        Dodge()
+        DodgeLockoutEnd = os.clock() + 0.2
+    else 
+        if LastPendingRegData ~= regData then
+            LastPendingRegData = regData
+            BlockStart(LastPendingRegData.BlockStart)
+            --[[print(string.format("Block triggered by [%s | %s] " , 
+                attackConfig.Style, 
+                attackConfig.DisplayName
+                ))]]
+        elseif LastPendingRegData == regData then
+            if regData.DidALoop then  
+                print(string.format("Block retriggered for [%s | %s] because its the same key but it looped", 
+                attackConfig.Style, 
+                attackConfig.DisplayName))
+                regData.DidALoop = false
+                BlockStart(regData.BlockStart)
+            else
+            --    print(string.format("Block retriggered for  [%s | %s] since we're still in window", attackConfig.Style, attackConfig.DisplayName))
+            end
+
+         --   BlockStart(regData.StartTime)
         end
     end
 end
+
+local function EvaluateAnimation(anim, character, localCharacter, localRoot, targetRoot, currentActiveIds)
+    -- ANIMATION VALIDATION
+    if not anim.AnimationId then return end
+    local attackConfig = GameConfig[tostring(anim.AnimationId)]
+    if not attackConfig then return end
+    
+    local animKey = anim.Address or anim
+    currentActiveIds[animKey] = true
+    
+    -- ANIMATION REGISTRY & STATE
+    local now = os.clock()
+    local regData = UpdateAnimationRegistry(animKey, anim, now, anim.TimePosition or 0, attackConfig)
+    if regData.Processed then return end
+    
+    -- PARRY FUNCTION OVERRIDE
+    if attackConfig.ParryFunction and (now - regData.StartTime) <= (attackConfig.ReactionTime or DefaultReactionTime) + ParryWindow/2 then
+        attackConfig.ParryFunction({
+            RegistryData = regData,
+            Mob = character,
+            AnimationData = anim,
+            AnimationTracker = AnimationTracker,
+        })
+        return
+    end
+    
+    -- DIRECTION CHECKS
+    if not CheckAnimationDirection(character, localCharacter, localRoot, targetRoot, attackConfig) then return end
+    
+    if regData.RandomNum > ProbabilityToParry then
+        regData.Processed = true
+--        print("Skip b/c PTP", RandomNum, ProbabilityToParry)
+        return
+    end
+    
+    -- PARRY EXECUTION
+    if now >= regData.BlockStart and now <= regData.BlockExpire then
+    --    if not LastPendingRegData or LastPendingRegData.Proc then
+            ExecuteParry(regData, attackConfig)
+    --    end
+    end
+end
+
+local function EvaluateCharacter(character, localCharacter, localRoot, currentActiveIds)
+    -- CHARACTER VALIDATION
+    local targetRoot = ValidateTargetCharacter(character)
+    if not targetRoot then return end
+    
+    -- CHARACTER DISTANCE & ESP
+    local Distance = CheckCharacterDistance(localRoot, targetRoot)
+    if not UpdateCharacterESP(character, Distance) then return end
+    
+    -- ANIMATION LOOP
+    local activeAnimations = AnimationTracker:Update(character)
+    if not activeAnimations or #activeAnimations == 0 then return end
+    
+    for _, anim in ipairs(activeAnimations) do
+        EvaluateAnimation(anim, character, localCharacter, localRoot, targetRoot, currentActiveIds)
+    end
+end
+
+local function EvaluateParryTriggers()
+    -- SETUP & VALIDATION
+    local localCharacter, localRoot = ValidateLocalCharacter()
+    if not localCharacter or not localRoot then return end
+    
+    local currentActiveIds = {}
+
+    -- CHARACTER ITERATION
+    for _, character in ipairs(TargetCharacters) do
+        EvaluateCharacter(character, localCharacter, localRoot, currentActiveIds)
+    end
+
+    -- CLEANUP
+    for key, val in pairs(AnimationRegistry) do
+        if not currentActiveIds[key] then
+            AnimationRegistry[key] = nil
+            if LastPendingRegData == val then
+                --print("Removed last pending reg data because the animation isnt playing")
+                LastPendingRegData = nil
+            end
+        end
+    end
+end
+
+-- ==========================================
+-- ==========================================
 
 local function ProcessEspAndLogging()
     for i = #TargetCharacters, 1, -1 do
@@ -1358,7 +1622,7 @@ local function ProcessEspAndLogging()
                 poolData and poolData.Style or "???",
                 tostring(assetId),
                 anim.TimePosition or 0.00,
-                poolData and poolData.ParryTime or DefaultParryTime,
+                poolData and poolData.ReactionTime or DefaultReactionTime,
                 poolData and "[Logged]" or "[Unknown]",
                 anim.Speed
             ))
@@ -1471,51 +1735,51 @@ UIS.InputBegan:Connect(function(input, gameProcessed)
     
     if input.KeyCode == Enum.KeyCode.X then
         CycleEvent()
-    elseif input.KeyCode == Enum.KeyCode.F then  
-        --if AutoParryToggle.Get() == false and LastPendingRegData then  
+    elseif input.KeyCode == Enum.KeyCode.F then 
+        local localChar = LocalPlayer.Character
+        LocalTracker:Update(localChar) 
+        OnInputF()
+        --[[if AutoParryToggle.Get() == false and LastPendingRegData then  
             InputRegisteredTime = os.clock()
+            
+            if (InputRegisteredTime - LastReactionTime) < 1 then  
+                 print("probably on cooldown")
+            end
             if not LastPendingRegData then return end 
             local Difference = os.clock() - LastPendingRegData.StartTime
             local string = string.format("DETECT: You pressed F at %.2f", os.clock() - LastPendingRegData.StartTime)
 --            print(string)
-        --end
+        --end]]
     end
 end)
 
 
 
-local COMBAT_TICK = 0 -- Run every frame
-local UTILITY_TICK = 0.01 -- Run 20 times per second
-local TARGET_TICK = 0.5 -- Run 2 times per second
+local STATE_MACHINE_TICK = 0.05
+local UTILITY_TICK = 0.5 -- Run 2 times per second
 local LastCycleCheck = 0 
 
 local function MainLoop()
     local now = os.clock()
     local localChar = LocalPlayer.Character
+    if not localChar.Humanoid then return end 
 
    
-    ParryTask()
+    LocalTracker:Update(localChar)
     EvaluateParryTriggers()
+    ParryTask()
     
     scheduler.update()
 
-    if (now - lastAnimationCheck >= COMBAT_TICK) then
-        lastAnimationCheck = now
-        if #TargetCharacters >= 1 then
-            ProcessEspAndLogging()
-        end
-        
-        if localChar and localChar:FindFirstChild("Humanoid") then
-            LocalTracker:Update(localChar)
-        end
-    end
-
-    if (now - LastCycleCheck >= TARGET_TICK) then
+    if (now - LastCycleCheck >= UTILITY_TICK) then
         LastCycleCheck = now
         if AutoTargetNearest.Get() then
             CycleEvent()
         end
+
+        ProcessEspAndLogging()
     end
 end
 
-RunService.Heartbeat:Connect(MainLoop)
+RunService.RenderStepped:Connect(MainLoop)
+--RunService.Heartbeat:Connect(MainLoop)
