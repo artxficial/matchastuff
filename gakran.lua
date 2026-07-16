@@ -136,7 +136,7 @@ local GameConfig = {
                     task.wait(.3)
                     Dodge()
                     task.wait(.35)
-                    BlockStart(nil, 0.6)
+                    BlockStart(os.clock(), 0.6)
                 end)
             end,
         },
