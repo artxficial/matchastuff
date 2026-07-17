@@ -1736,7 +1736,7 @@ UIS.InputBegan:Connect(function(input, gameProcessed)
 
     if input.KeyCode == string.byte("x") then
         CycleEvent()
-    elseif input.KeyCode == ParryKey then 
+    elseif input.KeyCode == string.byte("f") then 
         local localChar = LocalPlayer.Character
         LocalTracker:Update(localChar) 
         OnInputF()
