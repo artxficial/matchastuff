@@ -1731,11 +1731,12 @@ end
 -- Input & Loop
 -- ==========================================
 UIS.InputBegan:Connect(function(input, gameProcessed)
-    if gameProcessedEvent then return end  
+    if gameProcessedEvent then warn("NO") return end  
     
-    if input.KeyCode == Enum.KeyCode.X then
+
+    if input.KeyCode == string.byte("x") then
         CycleEvent()
-    elseif input.KeyCode == Enum.KeyCode.F then 
+    elseif input.KeyCode == ParryKey then 
         local localChar = LocalPlayer.Character
         LocalTracker:Update(localChar) 
         OnInputF()
