@@ -70,20 +70,24 @@ local GameConfig = {
     },
     ["WrestlingAnims"] = {
         ["rbxassetid://91485623489753"] = {
-            DisplayName = "4thM1"
+            DisplayName = "4thM1",
+            ParryTime = 0.08,
         },
         ["rbxassetid://73748315742870"] = {
             DisplayName = "M2",
             ReactionTime = 0.3,
         },
         ["rbxassetid://82903450925391"] = {
-            DisplayName = "1stM1"
+            DisplayName = "1stM1",
+            ParryTime = 0.08,
         },
         ["rbxassetid://119685134442395"] = {
-            DisplayName = "2ndM1"
+            DisplayName = "2ndM1",
+            ParryTime = 0.08,
         },
         ["rbxassetid://107464726433388"] = {
-            DisplayName = "3rdM1"
+            DisplayName = "3rdM1",
+            ParryTime = 0.08,
         },
         ["M1Time"] = 0.11,
 
@@ -94,16 +98,21 @@ local GameConfig = {
             ReactionTime = 0.3,
         },
         ["rbxassetid://74960202100098"] = {
-            DisplayName = "4thM1"
+            DisplayName = "4thM1",
+            ParryTime = 0.08,
         },
         ["rbxassetid://104515319350296"] = {
-            DisplayName = "3rdM1"
+            DisplayName = "3rdM1",
+            ParryTime = 0.08,
         },
         ["rbxassetid://139911027872047"] = {
-            DisplayName = "2ndM1"
+            DisplayName = "2ndM1",
+            ParryTime = 0.08,
+            
         },
         ["rbxassetid://96726284968458"] = {
-            DisplayName = "1stM1"
+            DisplayName = "1stM1",
+            ParryTime = 0.08,
         },
         ["M1Time"] = 0.1,        
     },
