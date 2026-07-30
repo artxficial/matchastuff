@@ -133,15 +133,23 @@ local GameConfig = {
         ["rbxassetid://132022052139564"] = {
             DisplayName = "M2",
             ParryFunction = function(data)
-                if data.RegistryData.Processed == true then warn("no") return end 
+                if data.RegistryData.Processed == true then return end 
                 
                 data.RegistryData.Processed = true
                 task.spawn(function()
-                    print("Boxing parry")
-                    task.wait(.3)
-                    Dodge()
-                    task.wait(.35)
-                    BlockStart(os.clock(), 0.6)
+                    local random = math.random(1,10)
+                    if random < 5 then  
+                        print("Boxing parry 1")
+                        task.wait(.4)
+                        BlockStart(os.clock())
+                    else
+                        print("Boxing parry 2")
+                        task.wait(.3)
+                        Dodge()
+                        task.wait(.35)
+                        BlockStart(os.clock(), 0.6)
+                    end
+                  
                 end)
             end,
         },
@@ -285,9 +293,9 @@ local GameConfig = {
 }
 
 local IgnoreIds = {
-73766443218740,111699625251889,85823794654077,83600639547203,99661732639863,106268941365574,109816855387997,122561749929324,129805948180599,
-90752347516770,135133599113049,132695091086148,137015026151472,114511731321756,122541287927198,80309578200579,100794890036133,109303037515668,117293898907979,74690341409113,73090768467054,72284079162560,92787945841620,89016181362524,
-76945839486275,101161965631044,80135556847061,128307941333158,85931837451298,91352556581859, 104407197874289,77911299793653,129335968179665, 122384188141033,
+73766443218740,111699625251889,85823794654077,99661732639863,106268941365574,109816855387997,122561749929324,129805948180599,
+90752347516770,135133599113049,132695091086148,137015026151472,114511731321756,100794890036133,109303037515668,117293898907979,74690341409113,73090768467054,72284079162560,89016181362524,
+76945839486275,101161965631044,80135556847061,128307941333158,85931837451298,91352556581859,77911299793653,129335968179665, 122384188141033,
 132695766056641,113331696487725,124220338099067,99799500309776,108636808436488,90015977935891,87932588807124,132477488202815,102982320608759,109278619250401,79971841883936,97783129267001,72822821848529,79974955602012,77798715679680,85845666927963,108862846290180,108045962864902,93184693099565,120399899079666,99958962160522,
 }
 
@@ -295,9 +303,7 @@ local IgnoreIds = {
 local ParriedAnimation = {"rbxassetid://100773926241456", "rbxassetid://102823909334302", "rbxassetid://96304721384743", "rbxassetid://82979105739696", "rbxassetid://96600699015093",
 "rbxassetid://138519505081692",
 }
--- 5645212799 blocking anim
-
-local StunnedAnimation = {"rbxassetid://9598562590", "rbxassetid://9598537410", "rbxassetid://9598551746"}
+local StunnedAnimation = {"rbxassetid://122541287927198", "rbxassetid://83600639547203", "rbxassetid://80309578200579", "rbxassetid://92787945841620", "rbxassetid://108045962864902", "rbxassetid://104407197874289"}
 local ParryingAnimation = {"rbxassetid://118147060185189"} -- Blocking
 local ParryFailed = {"rbxassetid://4210597123"} -- BlockHit
 
@@ -1250,7 +1256,7 @@ local function ParryTask()
     end
 
     if CurrentParryState == ParryState.INPUT_PENDING then
-        local MaxLatency = 0.5 -- This is the maximum time we wait for the parrying animation to appear, if it doesn't appear it means parry cooldown
+        local MaxLatency = 0.7 -- This is the maximum time we wait for the parrying animation to appear, if it doesn't appear it means parry cooldown
         local TimePassedSinceFWasPressed = now - InputRegisteredTime
 
         local ActiveAnims = GetActiveAnimationsForCharacterAsDictionary(LocalPlayer.Character)
@@ -1324,7 +1330,8 @@ local function onLocalAnimationAdded(anim)
     
     if table.find(StunnedAnimation, animId) then
         -- keypress(string.byte()) if u f in a stun u get a shaky block 
-      -- OnStunned()
+     --  OnStunned()
+     --  print("stunned")
     end
 
     if GameConfig[animId] then  
@@ -1470,9 +1477,11 @@ local function CheckAnimationDirection(character, localCharacter, localRoot, tar
     if character.Address == localCharacter.Address then return true end
     
     local direction = (targetRoot.Position - localRoot.Position).Unit
+    local distance = (targetRoot.Position - localRoot.Position).Magnitude
     local isHeavy = attackConfig.DisplayName == "M2" or attackConfig.DisplayName == "Heavy" or attackConfig.Heavy
+  --  print(distance)
     
-    if not isHeavy then  
+    if not isHeavy and distance > 4 then  
         if TargetFacingYou.Get() and targetRoot.CFrame.LookVector:Dot(-direction) < 0.25 then return false end
         if YouFacingTarget.Get() and localRoot.CFrame.LookVector:Dot(direction) < 0.25 then return false end
     end
