@@ -71,7 +71,6 @@ local GameConfig = {
     ["WrestlingAnims"] = {
         ["rbxassetid://91485623489753"] = {
             DisplayName = "4thM1",
-            ParryTime = 0.08,
         },
         ["rbxassetid://73748315742870"] = {
             DisplayName = "M2",
@@ -79,17 +78,14 @@ local GameConfig = {
         },
         ["rbxassetid://82903450925391"] = {
             DisplayName = "1stM1",
-            ParryTime = 0.08,
         },
         ["rbxassetid://119685134442395"] = {
             DisplayName = "2ndM1",
-            ParryTime = 0.08,
         },
         ["rbxassetid://107464726433388"] = {
             DisplayName = "3rdM1",
-            ParryTime = 0.08,
         },
-        ["M1Time"] = 0.11,
+        ["M1Time"] = 0.14,
 
     },
     ["MuayThaiAnims"] = {
@@ -1389,6 +1385,7 @@ local function CalculateParryTiming(attackConfig, StartTime, Target)
     
     local optimalReactionTime = (attackConfig.ReactionTime or DefaultReactionTime)
     local HeightMultiplier = GetHeightMultiplierForCharacter(Target)
+    local Ping = GetPingValue()
 
     local adjustedReactionTime = (optimalReactionTime * HeightMultiplier) + ParryOffset
 
