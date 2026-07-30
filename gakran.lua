@@ -37,11 +37,11 @@ local GameConfig = {
         },
         ["rbxassetid://130865087635587"] = {
             DisplayName = "3rdM1",
-            ReactionTime = 0.22,
+            ReactionTime = 0.15,
         },
         ["rbxassetid://86495068205420"] = {
             DisplayName = "4thM1",
-            ReactionTime = 0.22,
+            ReactionTime = 0.15,
         },
         ["rbxassetid://120393553812903"] = {
             DisplayName = "M2",
@@ -85,7 +85,7 @@ local GameConfig = {
         ["rbxassetid://107464726433388"] = {
             DisplayName = "3rdM1",
         },
-        ["M1Time"] = 0.14,
+        ["M1Time"] = 0.15,
 
     },
     ["MuayThaiAnims"] = {
@@ -501,146 +501,90 @@ end
 
 -- ==========================================
 
-
+-- ==========================================================
+-- UI WINDOW & TAB INITIALIZATION
+-- ==========================================================
 local UI_Window = UI_Library:CreateWindow({ 
     title = "Auto Parry Builder", 
     size = Vector2.new(700, 580),
     configFolder = "auto_parry_builder",
- })
+})
 
 local AP_Tab = UI_Window:Tab("Auto Parry", "swords")
 local Config_Tab = UI_Window:Tab("Style Configurations", "swords")
 
-local Files_Section = AP_Tab:Section("Files", "Left")
-local Config_Section = AP_Tab:Section("Global Configuration", "Left")
-local AP_Section = AP_Tab:Section("Settings", "Right")
-local Folders_Section = AP_Tab:Section("Folders", "Right")
+local Files_Section     = AP_Tab:Section("Files", "Left")
+local Config_Section    = AP_Tab:Section("Global Configuration", "Left")
 local ClipboardSection = AP_Tab:Section("Logging", "Left")
 
-local TargetPool_Text = Folders_Section:Label("NO TARGETS FOUND") 
+local AP_Section        = AP_Tab:Section("Settings", "Right")
+local Folders_Section   = AP_Tab:Section("Folders", "Right")
 
-local Hint = AP_Section:Label("You have to press X in order to target someone or turn on Auto Target Nearest")
-local AutoParryToggle = AP_Section:Toggle("Auto Parry", true):AddKeybind("g", "Toggle")
-local AutoDodgeToggle = AP_Section:Toggle("Auto Dodge", true)
+-- ==========================================================
+-- STATE & UI ELEMENT REFERENCES
+-- ==========================================================
+local TargetPool_Text
+local LoggedText, IgnoredText
 
-local ParryDebugToggle = Config_Section:Toggle("Debug Parry", false)
+local AutoParryToggle, AutoDodgeToggle
+local AutoTargetNearest, MultiTarget
+local TargetFacingYou, YouFacingTarget
+local ParryDebugToggle
+local PingCompensateToggle
 
-local AutoTargetNearest = AP_Section:Toggle("Auto Target Nearest", false)
-local MuliTarget = AP_Section:Toggle("Multiple Targets", true)
-
-local TargetFacingYou = nil
-local YouFacingTarget = nil
-
-local LoggedText = ClipboardSection:Label("Logged Ids: ?")
-local IgnoredText = ClipboardSection:Label("Ignored Ids: ?")
-
-local function UpdateTargetPoolSection(Tab)
+-- ==========================================================
+-- HELPER FUNCTIONS
+-- ==========================================================
+local function UpdateTargetPoolSection()
     local characters = GetAllCharactersInFolder() 
     local names = {}
     
     for i, character in ipairs(characters) do
         table.insert(names, character.Name)
-
-        if i == 10 then table.insert(names, "... (too long)") break end 
+        if i == 10 then 
+            table.insert(names, "... (too long)") 
+            break 
+        end 
     end
 
-    local poolString = table.concat(names, ", ")
-    TargetPool_Text:SetText("Target Pool: ".. poolString)
+    local poolString = #names > 0 and table.concat(names, ", ") or "NO TARGETS FOUND"
+    TargetPool_Text:SetText("Target Pool: " .. poolString)
 end
 
 local function UpdateClipboardSection()
-    local IgnoredIdsCount = #IgnoreIds
-    local AnimationsLoggedCount = 0 
-
-    for i, v in AnimationsLoggedCache do  
-        AnimationsLoggedCount += 1
+    local animationsLoggedCount = 0 
+    for _ in pairs(AnimationsLoggedCache or {}) do  
+        animationsLoggedCount += 1
     end
 
-    LoggedText:SetText("Logged Ids: ".. AnimationsLoggedCount)
-    IgnoredText:SetText("Ignored Ids: ".. #IgnoreIds)
+    LoggedText:SetText("Logged Ids: " .. animationsLoggedCount)
+    IgnoredText:SetText("Ignored Ids: " .. #(IgnoreIds or {}))
 end
 
-local function CreateFoldersSection()
-    local folders = GetAllFoldersInWorkspace()
+-- ==========================================================
+-- SECTION BUILDERS
+-- ==========================================================
 
-    local Range = Folders_Section:Slider("Max Cycle Range", 10, 1, 7, 50, "", function(v)
-        MaxCycleRange = v
-    end)
-    Range:Set(MaxCycleRange)
-
-
-    local IncludeLocalCharacterToggle = Folders_Section:Toggle("Include Local Character", false, function(on)
-        IncludeLocalCharacter = on
-        UpdateTargetPoolSection()   
-    end)
-
-    local FolderCombo = Folders_Section:Dropdown("Live Folder", nil, folders, false, function(list)
-        local Selected = list[1]
-        SelectedFolder = Selected
-        UpdateTargetPoolSection(Tab)
-    end)
-
-    if game.Workspace:FindFirstChild("Players") then  
-        FolderCombo:Set({"Players"})
-    elseif game.Workspace:FindFirstChild("Live") then 
-        FolderCombo:Set({"Live"})
-    end
-
-    print("[UI] Folders Section Created")
-end
-
-local function CreateGroupSliders()
-    local GroupedStyles = {}
-    
-    for animationId, Info in pairs(GameConfig) do  
-        local StyleName = Info.Style
-    --   if Info.DisplayName == "M2" or not StyleName or not Info.M1Time then continue end 
-
-        if not GroupedStyles[StyleName] then
-            GroupedStyles[StyleName] = {}
-        end
-        
-        GroupedStyles[StyleName][animationId] = Info
-    end
-
-    local Number = 1
-    for StyleName, Animations in pairs(GroupedStyles) do
-        local Side = (Number % 2 == 1) and "Left" or "Right"
-        local StyleSection = Config_Tab:Section(StyleName, Side)
-        
-        for animationId, Info in pairs(Animations) do
-            local nameLabel = Info.DisplayName or tostring(animationId)
-            if Info["ParryFunction"] then  
-                StyleSection:Label("Slider not possible for ".. nameLabel .. " since it uses a function" )
-                continue
-            end
-            
-            
-            AnimationIdSliders[animationId] = StyleSection:Slider("Reaction Time: " .. nameLabel, 0, 0.01, 0, 1, "", function(v)
-                if v ~= DefaultReactionTime then
-                    Info.ReactionTime = v                    
-                end
-            end)
-            
-            AnimationIdSliders[animationId]:Set(Info.M1Time or Info.ReactionTime or DefaultReactionTime)
-        end
-        
-        Number += 1
-    end
-end
-
+-- 1. Auto Parry Settings Section
 local function CreateAPSection()
+    AP_Section:Label("You have to press X in order to target someone or turn on Auto Target Nearest")
+    
+    AutoParryToggle = AP_Section:Toggle("Auto Parry", true):AddKeybind("g", "Toggle")
+    AutoDodgeToggle = AP_Section:Toggle("Auto Dodge", true)
+    AutoTargetNearest = AP_Section:Toggle("Auto Target Nearest", false)
+    MultiTarget = AP_Section:Toggle("Multiple Targets", true)
 
     AP_Section:Divider("Conditions")
 
     TargetFacingYou = AP_Section:Toggle("Target facing you", false)
     YouFacingTarget = AP_Section:Toggle("You facing target", true)
+end
+
+-- 2. Global Configurations Section
+local function CreateGlobalConfigSection()
+    ParryDebugToggle = Config_Section:Toggle("Debug Parry", false)
+
     
-    local Offset = Config_Section:Slider("Parry offset", 0, 0.01, -0.1, 0.1, "s",function(v)
-        ParryOffset = v
-    end)
-    Offset:Set(ParryOffset)
-    Config_Section:Label("Positive moves window forward making you parry later, Negative moves it backwards making you parry earlier")    
     
     local Range = Config_Section:Slider("Auto Parry Range", 40, 1, 7, 80, "", function(v)
         AutoParryRange = v
@@ -652,28 +596,62 @@ local function CreateAPSection()
     end)
     Probability:Set(ProbabilityToParry)
 
-    local DefaultSection = Config_Tab:Section("Default Configuration", "left")
+    local DefaultSection = Config_Tab:Section("Default Configuration", "Left")
     
-    local Time = DefaultSection:Slider("Default Reaction Time", 0.3, 0.01, 0, 1, "", function(v)
-        DefaultReactionTime = v
-        UpdateSliders()
+    local Offset = DefaultSection:Slider("Parry offset", 0, 0.01, -0.1, 0.1, "s", function(v)
+        ParryOffset = v
     end)
-    Time:Set(DefaultReactionTime)
-    DefaultSection:Label("Reaction time is the time you press F from the moment the animation starts playing. It does not account for ping")
+    Offset:Set(ParryOffset)
 
+    DefaultSection:Label("Positive moves window forward (parry later), Negative moves it backward (parry earlier)")    
+
+    PingCompensateToggle = DefaultSection:Toggle("Ping Compensation", true)
+    DefaultSection:Label("Subtracts half of your ping value from the start time of ur reaction time. May improve performance.")
+    
     DefaultSection:Divider("Window")
     
     local Window = DefaultSection:Slider("Default Parry Window", 0.3, 0.01, 0, 1, "", function(v)
         ParryWindow = v
-        --ReleaseTime = ParryWindow/2
     end)
     Window:Set(ParryWindow)
     DefaultSection:Label("This is usually constant, don't change this.")
-    
 end
 
+-- 3. Folders Section
+local function CreateFoldersSection()
+    TargetPool_Text = Folders_Section:Label("Target Pool: NO TARGETS FOUND") 
+
+    local folders = GetAllFoldersInWorkspace()
+
+    local Range = Folders_Section:Slider("Max Cycle Range", 10, 1, 7, 50, "", function(v)
+        MaxCycleRange = v
+    end)
+    Range:Set(MaxCycleRange)
+
+    Folders_Section:Toggle("Include Local Character", false, function(on)
+        IncludeLocalCharacter = on
+        UpdateTargetPoolSection()   
+    end)
+
+    local FolderCombo = Folders_Section:Dropdown("Live Folder", nil, folders, false, function(list)
+        SelectedFolder = list[1]
+        UpdateTargetPoolSection()
+    end)
+
+    if game.Workspace:FindFirstChild("Players") then  
+        FolderCombo:Set({"Players"})
+    elseif game.Workspace:FindFirstChild("Live") then 
+        FolderCombo:Set({"Live"})
+    end
+
+    print("[UI] Folders Section Created")
+end
+
+-- 4. Logging & Clipboard Section
 local function CreateClipboardSection()
-    -- 1. Define the UI element configurations in a clean list
+    LoggedText = ClipboardSection:Label("Logged Ids: ?")
+    IgnoredText = ClipboardSection:Label("Ignored Ids: ?")
+
     local elements = {
         {
             Type = "Toggle",
@@ -687,8 +665,8 @@ local function CreateClipboardSection()
             Type = "Toggle",
             Name = "Add unknowns to ignore and copy ignore list",
             Default = false,
-            Keybind = "v", -- Just define the keybind right here!
-            Callback = function(on, self) 
+            Keybind = "v",
+            Callback = function(on, instance) 
                 SetClipboardIgnoreList()
                 AnimationsLoggedCache = {}
                 AnimationsLoggedOrder = {}
@@ -715,7 +693,6 @@ local function CreateClipboardSection()
         }
     }
 
-    -- 2. Loop through the list and dynamically construct the UI
     for _, config in ipairs(elements) do
         local instance
 
@@ -741,28 +718,76 @@ local function CreateClipboardSection()
     end
 end
 
+-- 5. Files Section
 local function CreateFilesSection()
+    Files_Section:Info("Game: " .. tostring(GameName))
 
-    Files_Section:Info("Game: "..GameName)
-
-    local Load = Files_Section:Button("Load Configuration", function()
-        local configData = UI_Library:LoadConfig(GameName)
+    Files_Section:Button("Load Configuration", function()
+        UI_Library:LoadConfig(GameName)
         UI_Library:Notify("Success", "Loaded configuration")
     end)
 
-    local Save = Files_Section:Button("Save Configuration", function()
+    Files_Section:Button("Save Configuration", function()
         UI_Library:SaveConfig(GameName)
         UI_Library:Notify("Success", "Saved configuration")
     end)
 end
 
-CreateFoldersSection()
-CreateAPSection()
-CreateGroupSliders()
-CreateFilesSection()
+-- 6. Dynamic Group Sliders (Style Configurations Tab)
+local function CreateGroupSliders()
+    local GroupedStyles = {}
+    
+    for animationId, Info in pairs(GameConfig or {}) do  
+        local StyleName = Info.Style or "Unknown"
+
+        if not GroupedStyles[StyleName] then
+            GroupedStyles[StyleName] = {}
+        end
+        
+        GroupedStyles[StyleName][animationId] = Info
+    end
+
+    local counter = 1
+    for StyleName, Animations in pairs(GroupedStyles) do
+        local Side = (counter % 2 == 1) and "Left" or "Right"
+        local StyleSection = Config_Tab:Section(StyleName, Side)
+        
+        for animationId, Info in pairs(Animations) do
+            local nameLabel = Info.DisplayName or tostring(animationId)
+            
+            if Info["ParryFunction"] then  
+                StyleSection:Label("Slider not possible for " .. nameLabel .. " (uses function)")
+                continue
+            end
+            
+            AnimationIdSliders[animationId] = StyleSection:Slider("Reaction Time: " .. nameLabel, 0, 0.01, 0, 1, "", function(v)
+                if v ~= DefaultReactionTime then
+                    Info.ReactionTime = v                    
+                end
+            end)
+            
+            AnimationIdSliders[animationId]:Set(Info.M1Time or Info.ReactionTime or DefaultReactionTime)
+        end
+        
+        counter += 1
+    end
+end
+
+-- ==========================================================
+-- UI INITIALIZATION
+-- ==========================================================
+local function InitializeUI()
+    CreateAPSection()
+    CreateGlobalConfigSection()
+    CreateFoldersSection()
+    CreateClipboardSection()
+    CreateFilesSection()
+    CreateGroupSliders()
+end
+
+InitializeUI()
 
 UpdateClipboardSection()
-CreateClipboardSection()
 
 -- ==========================================
 local PARRY_DISTANCE = 15 
@@ -826,7 +851,6 @@ local function ListenForOrbs()
                 if distance <= PARRY_DISTANCE and (tick() - lastParryAt >= 0.08) then
                     lastParryAt = tick()
                     
-                    print("Ok")
                     BlockStart()
                     BlockEnd()
                     
@@ -1029,18 +1053,8 @@ function BlockStart(StartTime, HoldFor)
     --print(now, duration, "attempted block", holdTime and holdTime - now)
 
     KeyHeld = true
-    
-    if AutoParryToggle.Get() == true then
-        if ismouse1pressed() then mouse2click() end 
-        keypress(ParryKey)       
-        
-      --[[  task.spawn(function()
-            for i = 1, 60, 1 do
-                keyrelease(ParryKey)       
-                keypress(ParryKey)       
-                task.wait()            
-            end
-        end)]]
+    if AutoParryToggle.Get() == true then  
+        keypress(ParryKey)         
     end
 end
 
@@ -1159,8 +1173,6 @@ local function OnParryingAnimationFailed()
     end
 end
 
---                  ==[Parrying State]==
--- We parried but we didn't get a parry success in the time frame
 
 local StunToken = 0
 local function OnStunned()
@@ -1172,7 +1184,7 @@ local function OnStunned()
     local MyToken = StunToken
     
     
-    scheduler.delay(0.3, function()
+    scheduler.delay(0.4, function()
         if MyToken == StunToken then 
             BlockEnd()
             TransitionToState(ParryState.IDLE)            
@@ -1238,7 +1250,7 @@ local function ParryTask()
     end
 
     if CurrentParryState == ParryState.INPUT_PENDING then
-        local MaxLatency = 1 -- This is the maximum time we wait for the parrying animation to appear, if it doesn't appear it means parry cooldown
+        local MaxLatency = 0.5 -- This is the maximum time we wait for the parrying animation to appear, if it doesn't appear it means parry cooldown
         local TimePassedSinceFWasPressed = now - InputRegisteredTime
 
         local ActiveAnims = GetActiveAnimationsForCharacterAsDictionary(LocalPlayer.Character)
@@ -1314,6 +1326,12 @@ local function onLocalAnimationAdded(anim)
         -- keypress(string.byte()) if u f in a stun u get a shaky block 
       -- OnStunned()
     end
+
+    if GameConfig[animId] then  
+        print("player is m1ing")
+        OnStunned()
+    end
+
 end
 
 local AnimationAdded = LocalTracker.AnimationAdded:Connect(onLocalAnimationAdded)
@@ -1384,10 +1402,16 @@ end
 local function CalculateParryTiming(attackConfig, StartTime, Target)
     
     local optimalReactionTime = (attackConfig.ReactionTime or DefaultReactionTime)
-    local HeightMultiplier = GetHeightMultiplierForCharacter(Target)
-    local Ping = GetPingValue()
+    local HeightMultiplier = 1 -- GetHeightMultiplierForCharacter(Target)
+    local CompValue = (GetPingValue()/1000) * 0.5
+
+    if PingCompensateToggle.Get() then  
+        print(CompValue)
+        optimalReactionTime -= CompValue
+    end
 
     local adjustedReactionTime = (optimalReactionTime * HeightMultiplier) + ParryOffset
+
 
     local parryWindowStart = adjustedReactionTime
     local parryWindowEnd = adjustedReactionTime + ParryWindow
@@ -1467,16 +1491,18 @@ local function ExecuteParry(regData, attackConfig)
         end)
         DodgeLockoutEnd = os.clock() + 0.2
     elseif isHeavy and AutoDodgeToggle.Get() then
-        Dodge()
+        if AutoParryToggle.Get() then  
+            Dodge()            
+        end
     --    DodgeLockoutEnd = os.clock() + 0.2
     else 
         if LastPendingRegData ~= regData then
             LastPendingRegData = regData
             BlockStart(LastPendingRegData.BlockStart)
-            --[[print(string.format("Block triggered by [%s | %s] " , 
+            print(string.format("Block triggered by [%s | %s] " , 
                 attackConfig.Style, 
                 attackConfig.DisplayName
-                ))]]
+                ))
         elseif LastPendingRegData == regData then
             if regData.DidALoop then  
                 print(string.format("Block retriggered for [%s | %s] because its the same key but it looped", 
@@ -1488,7 +1514,7 @@ local function ExecuteParry(regData, attackConfig)
             --    print(string.format("Block retriggered for  [%s | %s] since we're still in window", attackConfig.Style, attackConfig.DisplayName))
             end
 
-         --   BlockStart(regData.StartTime)
+           -- BlockStart(regData.StartTime)
         end
     end
 end
@@ -1509,12 +1535,14 @@ local function EvaluateAnimation(anim, character, localCharacter, localRoot, tar
     
     -- PARRY FUNCTION OVERRIDE
     if attackConfig.ParryFunction and (now - regData.StartTime) <= (attackConfig.ReactionTime or DefaultReactionTime) + ParryWindow/2 then
-        attackConfig.ParryFunction({
-            RegistryData = regData,
-            Mob = character,
-            AnimationData = anim,
-            AnimationTracker = AnimationTracker,
-        })
+        if AutoParryToggle.Get() then  
+           attackConfig.ParryFunction({
+               RegistryData = regData,
+               Mob = character,
+               AnimationData = anim,
+               AnimationTracker = AnimationTracker,
+           }) 
+        end
         return
     end
     
@@ -1708,7 +1736,7 @@ function CycleEvent()
         return a.Distance < b.Distance
     end)
 
-    if MuliTarget.Get() then
+    if MultiTarget.Get() then
         local Max = 3
         local finalTargets = {}
         
