@@ -1047,9 +1047,9 @@ function BlockStart(StartTime, HoldFor)
     end
 
     if CurrentParryState ~= ParryState.IDLE then  
-        warn("tried to press in a non idle state")
-       -- TransitionToState(ParryState.IDLE)
-        return
+        warn("tried to press in a non idle state BYPASS")
+        TransitionToState(ParryState.IDLE)
+       -- return
     end
 
 
@@ -1059,8 +1059,17 @@ function BlockStart(StartTime, HoldFor)
     --print(now, duration, "attempted block", holdTime and holdTime - now)
 
     KeyHeld = true
-    if AutoParryToggle.Get() == true then  
-        keypress(ParryKey)         
+    if AutoParryToggle.Get() == true then
+        task.spawn(function()
+            for i = 1, 6, 1 do 
+                keypress(ParryKey)    
+                task.wait(.005)
+                if CurrentParryState == "parrying" then  
+                    print("bye")
+                    break
+                end
+            end
+        end)
     end
 end
 
