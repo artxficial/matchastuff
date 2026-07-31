@@ -520,6 +520,7 @@ local AP_Tab = UI_Window:Tab("Auto Parry", "swords")
 local Config_Tab = UI_Window:Tab("Style Configurations", "swords")
 
 local Files_Section     = AP_Tab:Section("Files", "Left")
+local AutoplaySection     = AP_Tab:Section("Autoplay", "Left")
 local Config_Section    = AP_Tab:Section("Global Configuration", "Left")
 local ClipboardSection = AP_Tab:Section("Logging", "Left")
 
@@ -537,6 +538,7 @@ local AutoTargetNearest, MultiTarget
 local TargetFacingYou, YouFacingTarget
 local ParryDebugToggle
 local PingCompensateToggle
+local AutoPlayToggle
 
 -- ==========================================================
 -- HELPER FUNCTIONS
@@ -567,9 +569,144 @@ local function UpdateClipboardSection()
     IgnoredText:SetText("Ignored Ids: " .. #(IgnoreIds or {}))
 end
 
+
+-- ==========================================================
+local Receptors = {
+    ["Receptor1"] = "X",
+    ["Receptor2"] = "C",
+    ["Receptor3"] = "N",
+    ["Receptor4"] = "M",
+}
+
+local HeldKeys = {}
+
+local Threshold = 30
+local LastCacheTime = 0
+local ReceptorXMap = {}
+
+
+
+local function AutoPlayTask()
+    local RhythmServiceUI = game.Players.LocalPlayer.PlayerGui:FindFirstChild("RhythmServiceUI")
+    if not RhythmServiceUI then return end
+
+    local RhythmRoot = RhythmServiceUI.RhythmRoot
+
+    local ReceptorLookup = RhythmRoot.Receptors
+    local Receptor1Y = ReceptorLookup.Receptor1.AbsolutePosition.Y
+    local ReceptorCount = 0 
+
+    local now = os.clock()
+    if now - LastCacheTime >= 1 then
+        for ReceptorName, Key in Receptors do
+            local Receptor = ReceptorLookup[ReceptorName]
+            if not Receptor then continue end 
+            ReceptorCount += 1
+            local ReceptorX = math.floor(Receptor.AbsolutePosition.X + Receptor.AbsoluteSize.X / 2)
+            ReceptorXMap[ReceptorX] = {ReceptorName = ReceptorName, Key = Key, Receptor = Receptor}
+        end
+        if ReceptorCount == 2 then  
+            Receptors["Receptor1"] = "F"
+            Receptors["Receptor2"] = "J"
+        else
+            Receptors["Receptor1"] = "X"
+            Receptors["Receptor2"] = "C"
+        end
+
+        LastCacheTime = now
+    end
+
+   for _, FallingNote in RhythmRoot.Lanes:GetChildren() do 
+    if FallingNote.Name ~= "NoteTemplate" then continue end 
+    local NotePos = FallingNote.AbsolutePosition
+    local NoteSize = FallingNote.AbsoluteSize
+    local NoteX = math.floor(NotePos.X + NoteSize.X / 2)
+
+    local Match
+    for RX, Data in ReceptorXMap do
+        if math.abs(NoteX - RX) <= 10 then
+            Match = Data
+            break
+        end
+    end
+
+    if not Match then continue end 
+    --if Match.ReceptorName ~= "Receptor2" then continue end 
+
+    local Tail = FallingNote.Tail
+    local TailSize = Tail and Tail.AbsoluteSize
+    local HasTail = TailSize and TailSize.Y > 0
+
+    local Receptor = Match.Receptor
+    local ReceptorPos = Receptor.AbsolutePosition
+    local ReceptorName = Match.ReceptorName
+    local Key = Match.Key
+
+
+    if HasTail then
+        local WhenYouShouldHold = (Tail.AbsolutePosition.Y + Tail.AbsoluteSize.Y) - ReceptorPos.Y
+        --[[if HeldKeys[ReceptorName] then  
+            print("--- TAIL DEBUG ---")
+            print("Tail AbsolutePosition:", Tail.AbsolutePosition.Y)
+            print("Note AbsolutePosition:", FallingNote.AbsolutePosition.Y)
+            print("Note AbsolutePosition:", FallingNote.AbsolutePosition.X)
+            print("Release countdown:", (Tail.AbsolutePosition.Y - ReceptorPos.Y))
+            print("When i should hold:", WhenYouShouldHold)
+            print("------------------")
+        end]]
+
+        if WhenYouShouldHold + 15 > Threshold then
+            if not HeldKeys[ReceptorName] then
+                HeldKeys[ReceptorName] = FallingNote.Address
+                keypress(string.byte(Key))
+--                print("im holding something")
+                
+            elseif HeldKeys[ReceptorName] ~= FallingNote.Address then
+                HeldKeys[ReceptorName] = FallingNote.Address
+              --  keyrelease(string.byte(Key))
+            --    print(math.abs(NotePos.Y - ReceptorPos.Y), "i wwww pressed again") 
+                keypress(string.byte(Key))
+            end
+        end
+
+        if FallingNote.Address == HeldKeys[ReceptorName] then
+            if (Tail.AbsolutePosition.Y - ReceptorPos.Y) > 0 then
+                scheduler.delay(0.01, function()
+                    HeldKeys[ReceptorName] = nil                    
+                end)
+                keyrelease(string.byte(Key))
+           --     print("release bye", (Tail.AbsolutePosition.Y - ReceptorPos.Y))
+            end
+        end
+    else
+        if math.abs(NotePos.Y - ReceptorPos.Y) < Threshold then
+            if HeldKeys[ReceptorName] then
+                keyrelease(string.byte(Key))
+                HeldKeys[ReceptorName] = nil
+            end
+            
+            task.spawn(function()                
+             --   print(math.abs(NotePos.Y - ReceptorPos.Y), "i just pressed again")
+             --   if HeldKeys[ReceptorName] then print("Why") return end
+                
+                keypress(string.byte(Key))
+                task.wait(0.05)
+                keyrelease(string.byte(Key))
+            end)
+        end
+    end
+end
+end
+-- Falling pieces are called note template
+-- Lanes are numbered
+
 -- ==========================================================
 -- SECTION BUILDERS
 -- ==========================================================
+
+local function CreateAutoPlaySection()
+    AutoPlayToggle = AutoplaySection:Toggle("Auto Play", true)
+end
 
 -- 1. Auto Parry Settings Section
 local function CreateAPSection()
@@ -783,6 +920,7 @@ end
 -- UI INITIALIZATION
 -- ==========================================================
 local function InitializeUI()
+    CreateAutoPlaySection()
     CreateAPSection()
     CreateGlobalConfigSection()
     CreateFoldersSection()
@@ -1779,6 +1917,8 @@ end
 UIS.InputBegan:Connect(function(input, gameProcessed)
     if gameProcessedEvent then warn("NO") return end  
     
+    local RhythmServiceUI = game.Players.LocalPlayer.PlayerGui:FindFirstChild("RhythmServiceUI")
+    if RhythmServiceUI then return end
 
     if input.KeyCode == string.byte("x") then
         CycleEvent()
@@ -1815,6 +1955,7 @@ local function MainLoop()
     LocalTracker:Update(localChar)
     EvaluateParryTriggers()
     ParryTask()
+    AutoPlayTask()
     
     scheduler.update()
 
