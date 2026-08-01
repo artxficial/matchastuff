@@ -48,7 +48,28 @@ local GameConfig = {
             ReactionTime = 0.3,
         },
     },
-
+    ["AliAnims"] = {
+        ["rbxassetid://137247073345979"] = {
+            DisplayName = "1stM1"
+        },
+        ["rbxassetid://102632933427597"] = {
+            DisplayName = "2ndM1"
+        },
+        ["rbxassetid://119814294807778"] = {
+            DisplayName = "3rdM1"
+        },
+        ["rbxassetid://74315946602284"] = {
+            DisplayName = "4thM1"
+        },
+        ["rbxassetid://128315752013166"] = {
+            DisplayName = "M2",
+            ReactionTime = 0.3,
+        },
+        ["rbxassetid://70642098724811"] = {
+            DisplayName = "M2Right",
+            ReactionTime = 0.3,
+        },
+    }
     ["BasicAnims"] = {
         ["rbxassetid://83491849294956"] = {
             DisplayName = "1stM1"
@@ -1971,3 +1992,4 @@ end
 
 RunService.RenderStepped:Connect(MainLoop)
 --RunService.Heartbeat:Connect(MainLoop)
+
