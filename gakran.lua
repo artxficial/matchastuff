@@ -158,23 +158,23 @@ local GameConfig = {
         ["rbxassetid://82855179231529"] = {
             DisplayName = "MomentumM2"
         },
-        ["rbxassetid://76236532060812"] = {
+        ["rbxassetid://92865171012109"] = {
             DisplayName = "1stM1",
             ReactionTime = 0.15,
         },
-        ["rbxassetid://74206130671324"] = {
+        ["rbxassetid://103026596903060"] = {
             DisplayName = "2ndM1",
             ReactionTime = 0.17,
         },
-        ["rbxassetid://71919935695307"] = {
+        ["rbxassetid://86626533783115"] = {
             DisplayName = "3rdM1",
             ReactionTime = 0.15,
         },
-        ["rbxassetid://122861547142657"] = {
+        ["rbxassetid://103100834246116"] = {
             DisplayName = "4thM1",
             ReactionTime = 0.21,
         },
-        ["rbxassetid://92851992709496"] = {
+        ["rbxassetid://103359839046574"] = {
             DisplayName = "M2",
             ReactionTime = 0.35,
         },
