@@ -69,7 +69,7 @@ local GameConfig = {
             DisplayName = "M2Right",
             ReactionTime = 0.3,
         },
-    }
+    },
     ["BasicAnims"] = {
         ["rbxassetid://83491849294956"] = {
             DisplayName = "1stM1"
