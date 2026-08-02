@@ -50,16 +50,20 @@ local GameConfig = {
     },
     ["AliAnims"] = {
         ["rbxassetid://137247073345979"] = {
-            DisplayName = "1stM1"
+            DisplayName = "1stM1",
+            ["ReactionTime"] = 0.12,
         },
         ["rbxassetid://102632933427597"] = {
-            DisplayName = "2ndM1"
+            DisplayName = "2ndM1",
+            ["ReactionTime"] = 0.17,
         },
         ["rbxassetid://119814294807778"] = {
-            DisplayName = "3rdM1"
+            DisplayName = "3rdM1",
+            ["ReactionTime"] = 0.13,
         },
         ["rbxassetid://74315946602284"] = {
-            DisplayName = "4thM1"
+            DisplayName = "4thM1",
+            ["ReactionTime"] = 0.11,
         },
         ["rbxassetid://128315752013166"] = {
             DisplayName = "M2",
@@ -197,7 +201,7 @@ local GameConfig = {
         },
         ["rbxassetid://103359839046574"] = {
             DisplayName = "M2",
-            ReactionTime = 0.35,
+            ReactionTime = 0.19,
         },
     },
     ["CapoeiraAnims"] = {
@@ -1201,7 +1205,7 @@ function BlockStart(StartTime, HoldFor)
        local TimeBetweenLastParry = os.clock() - ParryRegisteredTime
          if TimeBetweenLastParry < 0.8 then  
              print("parry is gonna be on cooldown")
-             return
+         --    return
          end 
     end
 
@@ -1424,7 +1428,7 @@ local function ParryTask()
     end
 
     if CurrentParryState == ParryState.INPUT_PENDING then
-        local MaxLatency = 0.7 -- This is the maximum time we wait for the parrying animation to appear, if it doesn't appear it means parry cooldown
+        local MaxLatency = 1 -- This is the maximum time we wait for the parrying animation to appear, if it doesn't appear it means parry cooldown
         local TimePassedSinceFWasPressed = now - InputRegisteredTime
 
         local ActiveAnims = GetActiveAnimationsForCharacterAsDictionary(LocalPlayer.Character)
