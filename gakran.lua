@@ -315,6 +315,12 @@ local GameConfig = {
             DisplayName = "M2"
         },
     },
+    ["Debug"] = {
+        ["http://www.roblox.com/asset/?id=125750702"] = {
+            DisplayName = "M1",
+            ReactionTime = 0.3,
+        },
+    },
 }
 
 local IgnoreIds = {
@@ -1601,10 +1607,12 @@ local function CalculateParryTiming(attackConfig, StartTime, Target)
     return ClockStart, ClockEnd
 end
 
+local ConstLatency = 0.018
+
 local function UpdateAnimationRegistry(animKey, anim, now, currentTrackTime, attackConfig, TargetCharacter)
 
     if not AnimationRegistry[animKey] then
-        local adjustedNow = now - currentTrackTime
+        local adjustedNow = now - ConstLatency -- - currentTrackTime
         local BlockStart, BlockExpire = CalculateParryTiming(attackConfig, adjustedNow, TargetCharacter)
 
         AnimationRegistry[animKey] = {
@@ -1632,7 +1640,7 @@ local function UpdateAnimationRegistry(animKey, anim, now, currentTrackTime, att
         warn("Loop detected")
         regData.BlockStart = BlockStart
         regData.BlockExpire = BlockExpire
-        regData.StartTime = now - currentTrackTime
+        regData.StartTime = now - ConstLatency -- - currentTrackTime
     end
     
     regData.CurrentClockTime = os.clock()
@@ -1996,4 +2004,3 @@ end
 
 RunService.RenderStepped:Connect(MainLoop)
 --RunService.Heartbeat:Connect(MainLoop)
-
