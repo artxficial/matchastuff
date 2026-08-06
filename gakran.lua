@@ -1226,7 +1226,6 @@ function BlockStart(StartTime, HoldFor)
     --print(now, duration, "attempted block", holdTime and holdTime - now)
 
     KeyHeld = true
-    keyrelease(ParryKey) 
     
     if AutoParryToggle.Get() == true then
         keypress(ParryKey)    
