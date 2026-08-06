@@ -140,11 +140,11 @@ local GameConfig = {
     ["BoxingAnims"] = {
         ["rbxassetid://137980914350618"] = {
             DisplayName = "1stM1",
-            ReactionTime = 0.12,
+            ReactionTime = 0.1,
         },
         ["rbxassetid://100408082509740"] = {
             DisplayName = "2ndM1",
-            ReactionTime = 0.12,
+            ReactionTime = 0.1,
         },
         ["rbxassetid://94803478352691"] = {
             DisplayName = "3rdM1",
@@ -153,7 +153,7 @@ local GameConfig = {
         },
         ["rbxassetid://78695517680318"] = {
             DisplayName = "4thM1",
-            ReactionTime = 0.15,
+            ReactionTime = 0.14,
         },
         ["rbxassetid://132022052139564"] = {
             DisplayName = "M2",
@@ -165,7 +165,7 @@ local GameConfig = {
                     local random = math.random(1,10)
                     if random < 5 then  
                         print("Boxing parry 1")
-                        task.wait(.4)
+                        task.wait(.3)
                         BlockStart(os.clock())
                     else
                         print("Boxing parry 2")
@@ -326,18 +326,19 @@ local GameConfig = {
 local IgnoreIds = {
 73766443218740,111699625251889,85823794654077,99661732639863,106268941365574,109816855387997,122561749929324,129805948180599,
 90752347516770,135133599113049,132695091086148,137015026151472,114511731321756,100794890036133,109303037515668,117293898907979,74690341409113,73090768467054,72284079162560,89016181362524,
-76945839486275,101161965631044,80135556847061,128307941333158,85931837451298,91352556581859,77911299793653,129335968179665, 122384188141033,
+76945839486275,101161965631044,128307941333158,85931837451298,91352556581859,77911299793653,129335968179665, 122384188141033,
 132695766056641,113331696487725,124220338099067,99799500309776,108636808436488,90015977935891,87932588807124,132477488202815,102982320608759,109278619250401,79971841883936,97783129267001,72822821848529,79974955602012,77798715679680,85845666927963,108862846290180,108045962864902,93184693099565,120399899079666,99958962160522,
 }
+
+--IgnoreIds = {}
 
 
 local ParriedAnimation = {"rbxassetid://100773926241456", "rbxassetid://102823909334302", "rbxassetid://96304721384743", "rbxassetid://82979105739696", "rbxassetid://96600699015093",
 "rbxassetid://138519505081692",
 }
 local StunnedAnimation = {"rbxassetid://122541287927198", "rbxassetid://83600639547203", "rbxassetid://80309578200579", "rbxassetid://92787945841620", "rbxassetid://108045962864902", "rbxassetid://104407197874289"}
-local ParryingAnimation = {"rbxassetid://118147060185189"} -- Blocking
+local ParryingAnimation = {"rbxassetid://118147060185189", "rbxassetid://80135556847061", "rbxassetid://88718564310179"} -- Blocking
 local ParryFailed = {"rbxassetid://4210597123"} -- BlockHit
-
 
 local AutoParryRange = 10
 local MaxCycleRange = 20
@@ -1056,9 +1057,6 @@ local TriggerParry = false
 local Stunned = false
 local currentStunToken = 0
 
-local parryIntentSnapshot = nil
-local ParrySuccess = false
-
 local AnimationTracker = AnimationTracker.new(IgnoreIds)
 local LocalTracker = AnimationTracker.new(IgnoreIds)
 
@@ -1216,9 +1214,9 @@ function BlockStart(StartTime, HoldFor)
     end
 
     if CurrentParryState ~= ParryState.IDLE then  
-        warn("tried to press in a non idle state BYPASS")
+        warn("tried to press in a non idle state bypass")
         TransitionToState(ParryState.IDLE)
-       -- return
+    --    return
     end
 
 
@@ -1228,17 +1226,10 @@ function BlockStart(StartTime, HoldFor)
     --print(now, duration, "attempted block", holdTime and holdTime - now)
 
     KeyHeld = true
+    keyrelease(ParryKey) 
+    
     if AutoParryToggle.Get() == true then
-        task.spawn(function()
-            for i = 1, 6, 1 do 
-                keypress(ParryKey)    
-                task.wait(.005)
-                if CurrentParryState == "parrying" then  
-                    print("bye")
-                    break
-                end
-            end
-        end)
+        keypress(ParryKey)    
     end
 end
 
@@ -1434,20 +1425,28 @@ local function ParryTask()
     end
 
     if CurrentParryState == ParryState.INPUT_PENDING then
-        local MaxLatency = 1 -- This is the maximum time we wait for the parrying animation to appear, if it doesn't appear it means parry cooldown
+        local MaxLatency = 0.5 -- This is the maximum time we wait for the parrying animation to appear, if it doesn't appear it means parry cooldown
         local TimePassedSinceFWasPressed = now - InputRegisteredTime
 
         local ActiveAnims = GetActiveAnimationsForCharacterAsDictionary(LocalPlayer.Character)
        -- print(ActiveAnims)
-        
-        if ActiveAnims and ActiveAnims[ParryingAnimation[1]] then  
-            OnParryingAnimationSuccess()
+      
+        for i, v in ActiveAnims do  
+            if table.find(ParryingAnimation, v.AnimationId) then
+                OnParryingAnimationSuccess()
+                break
+            end
         end
-       
 
         --[[ if table.find(ParriedAnimation, animId) then  
             OnSuccessfulParry()
         end]]
+
+        if not iskeypressed(ParryKey) then  
+            warn("F key was released before parrying animation appeared")
+            ResetParryState()
+            TransitionToState(ParryState.IDLE)
+        end
 
         if TimePassedSinceFWasPressed > MaxLatency then
             warn(string.format("Parrying animation didn't appear, probably on CD MAX: %.2f | TIME: %.2f", MaxLatency, TimePassedSinceFWasPressed))
@@ -1591,7 +1590,6 @@ local function CalculateParryTiming(attackConfig, StartTime, Target)
     local CompValue = (GetPingValue()/1000) * 0.5
 
     if PingCompensateToggle.Get() then  
-        print(CompValue)
         optimalReactionTime -= CompValue
     end
 
@@ -1608,6 +1606,7 @@ local function CalculateParryTiming(attackConfig, StartTime, Target)
 end
 
 local ConstLatency = 0.018
+local EXECUTE_DEBOUNCE = 0.5
 
 local function UpdateAnimationRegistry(animKey, anim, now, currentTrackTime, attackConfig, TargetCharacter)
 
@@ -1627,6 +1626,7 @@ local function UpdateAnimationRegistry(animKey, anim, now, currentTrackTime, att
             BlockStart = BlockStart,
             BlockExpire = BlockExpire,
             RandomNum = math.random(1, 100),
+            LastExecuteTime = 0, -- debounce timestamp
         }
     end
     
@@ -1662,14 +1662,20 @@ local function CheckAnimationDirection(character, localCharacter, localRoot, tar
   --  print(distance)
     
     if not isHeavy and distance > 4 then  
-        if TargetFacingYou.Get() and targetRoot.CFrame.LookVector:Dot(-direction) < 0.25 then return false end
-        if YouFacingTarget.Get() and localRoot.CFrame.LookVector:Dot(direction) < 0.25 then return false end
+        if TargetFacingYou.Get() and targetRoot.CFrame.LookVector:Dot(-direction) < 0.1 then return false end
+        if YouFacingTarget.Get() and localRoot.CFrame.LookVector:Dot(direction) < 0.1 then return false end
     end
     
     return true
 end
 
 local function ExecuteParry(regData, attackConfig)
+    local now = os.clock()
+    if (now - regData.LastExecuteTime) < EXECUTE_DEBOUNCE then
+        return
+    end
+    regData.LastExecuteTime = now
+
     local isHeavy = attackConfig.DisplayName == "M2" or attackConfig.DisplayName == "Heavy" or attackConfig.Heavy
 
     if attackConfig.Jump then 
@@ -1901,7 +1907,7 @@ function CycleEvent()
 
     for _, char in ipairs(allCharacters) do
         -- Prevent the script from targeting yourself
-        if char == localCharacter then continue end 
+      --  if char == localCharacter then continue end 
 
         local targetRoot = char:FindFirstChild("HumanoidRootPart")
         if targetRoot then
