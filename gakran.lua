@@ -59,7 +59,7 @@ local GameConfig = {
         },
         ["rbxassetid://119814294807778"] = {
             DisplayName = "3rdM1",
-            ["ReactionTime"] = 0.13,
+            ["ReactionTime"] = 0.21,
         },
         ["rbxassetid://74315946602284"] = {
             DisplayName = "4thM1",
@@ -140,20 +140,20 @@ local GameConfig = {
     ["BoxingAnims"] = {
         ["rbxassetid://137980914350618"] = {
             DisplayName = "1stM1",
-            ReactionTime = 0.1,
+            ReactionTime = 0.17,
         },
         ["rbxassetid://100408082509740"] = {
             DisplayName = "2ndM1",
-            ReactionTime = 0.1,
+            ReactionTime = 0.17,
         },
         ["rbxassetid://94803478352691"] = {
             DisplayName = "3rdM1",
-            ReactionTime = 0.15,
+            ReactionTime = 0.17,
             
         },
         ["rbxassetid://78695517680318"] = {
             DisplayName = "4thM1",
-            ReactionTime = 0.14,
+            ReactionTime = 0.17,
         },
         ["rbxassetid://132022052139564"] = {
             DisplayName = "M2",
@@ -163,9 +163,18 @@ local GameConfig = {
                 data.RegistryData.Processed = true
                 task.spawn(function()
                     local random = math.random(1,10)
-                    if random < 5 then  
+
+                    task.wait(.4)
+                    BlockStart(os.clock(), 0.5)
+                    task.wait(.3)
+                    Dodge()
+                --    task.wait(.33)
+                --    Dodge()
+
+                   --[[ if random < 5 then  
                         print("Boxing parry 1")
                         task.wait(.3)
+
                         BlockStart(os.clock())
                     else
                         print("Boxing parry 2")
@@ -173,7 +182,7 @@ local GameConfig = {
                         Dodge()
                         task.wait(.35)
                         BlockStart(os.clock(), 0.6)
-                    end
+                    end]]
                   
                 end)
             end,
@@ -279,20 +288,24 @@ local GameConfig = {
     },
     ["KureAnims"] = {
         ["rbxassetid://71676634048602"] = {
-            DisplayName = "4thM1"
+            DisplayName = "4thM1",
+            ReactionTime = 0.16
         },
         ["rbxassetid://102407060635393"] = {
             DisplayName = "M2",
             ["ReactionTime"] = 0.06,
         },
         ["rbxassetid://82904229252991"] = {
-            DisplayName = "1stM1"
+            DisplayName = "1stM1",
+            ReactionTime = 0.16
         },
         ["rbxassetid://103732110215321"] = {
-            DisplayName = "2ndM1"
+            DisplayName = "2ndM1",
+            ReactionTime = 0.16
         },
         ["rbxassetid://103964436023727"] = {
-            DisplayName = "3rdM1"
+            DisplayName = "3rdM1",
+            ReactionTime = 0.16
         },
     },
     ["HakariOtherAnims"] = {
@@ -571,6 +584,7 @@ local TargetFacingYou, YouFacingTarget
 local ParryDebugToggle
 local PingCompensateToggle
 local AutoPlayToggle
+local HeightToggle
 
 -- ==========================================================
 -- HELPER FUNCTIONS
@@ -748,6 +762,8 @@ local function CreateAPSection()
     AutoDodgeToggle = AP_Section:Toggle("Auto Dodge", true)
     AutoTargetNearest = AP_Section:Toggle("Auto Target Nearest", false)
     MultiTarget = AP_Section:Toggle("Multiple Targets", true)
+    HeightToggle = AP_Section:Toggle("Height Multiplier (May crash some users)", true)
+    
 
     AP_Section:Divider("Conditions")
 
@@ -1226,6 +1242,7 @@ function BlockStart(StartTime, HoldFor)
     --print(now, duration, "attempted block", holdTime and holdTime - now)
 
     KeyHeld = true
+  --  keyrelease(ParryKey) 
     
     if AutoParryToggle.Get() == true then
         keypress(ParryKey)    
@@ -1404,8 +1421,8 @@ local function OnSuccessfulParry()
         TransitionToState(ParryState.SUCCESS)
         TransitionToState(ParryState.IDLE)
     else
-    --    warn("Tried to evaluate outside of parrying")
-    --    print(CurrentParryState)
+        warn("Tried to evaluate outside of parrying")
+        print(CurrentParryState)
     end
 end
 
@@ -1430,7 +1447,7 @@ local function ParryTask()
         local ActiveAnims = GetActiveAnimationsForCharacterAsDictionary(LocalPlayer.Character)
        -- print(ActiveAnims)
       
-        for i, v in ActiveAnims do  
+        for i, v in ActiveAnims do
             if table.find(ParryingAnimation, v.AnimationId) then
                 OnParryingAnimationSuccess()
                 break
@@ -1462,7 +1479,7 @@ local function ParryTask()
         end
 
         local ParryWindowStart = ParryRegisteredTime
-        local ParryWindowEnd = ParryRegisteredTime + ParryWindow
+        local ParryWindowEnd = ParryRegisteredTime + ParryWindow + 0.3
 
         --local AnimationStartTime = LastPendingRegData.StartTime -- Absolute timestamp (os.clock)
         --local BlockStart = LastPendingRegData.BlockStart       -- Absolute timestamp (os.clock)
@@ -1585,7 +1602,11 @@ end
 local function CalculateParryTiming(attackConfig, StartTime, Target)
     
     local optimalReactionTime = (attackConfig.ReactionTime or DefaultReactionTime)
-    local HeightMultiplier = 1 -- GetHeightMultiplierForCharacter(Target)
+    local HeightMultiplier = 1 
+    if HeightToggle.Get() then  
+       HeightMultiplier = GetHeightMultiplierForCharacter(Target)
+    end
+
     local CompValue = (GetPingValue()/1000) * 0.5
 
     if PingCompensateToggle.Get() then  
