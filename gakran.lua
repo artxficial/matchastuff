@@ -536,7 +536,7 @@ local function LiteGrabber(Folder)
     setclipboard(Output)
     print(Output)
 end
-LiteGrabber(game.ReplicatedStorage.Animations.Combat.WingChunAnims)
+--LiteGrabber(game.ReplicatedStorage.Animations.Combat.WingChunAnims)
 
 local function UpdateSliders(OldReactionTime)
     for animationId, Info in (GameConfig) do 
