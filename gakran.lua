@@ -293,7 +293,7 @@ local GameConfig = {
         },
         ["rbxassetid://102407060635393"] = {
             DisplayName = "M2",
-            ["ReactionTime"] = 0.06,
+            ["ReactionTime"] = 0.02,
         },
         ["rbxassetid://82904229252991"] = {
             DisplayName = "1stM1",
@@ -304,6 +304,28 @@ local GameConfig = {
             ReactionTime = 0.16
         },
         ["rbxassetid://103964436023727"] = {
+            DisplayName = "3rdM1",
+            ReactionTime = 0.16
+        },
+    },
+    ["WingChun"] = {
+        ["rbxassetid://81810173569294"] = {
+            DisplayName = "4thM1",
+            ReactionTime = 0.52
+        },
+        ["rbxassetid://82196924299426"] = {
+            DisplayName = "M2",
+            ["ReactionTime"] = 0.06,
+        },
+        ["rbxassetid://71178147313608"] = {
+            DisplayName = "1stM1",
+            ReactionTime = 0.16
+        },
+        ["rbxassetid://117898175201201"] = {
+            DisplayName = "2ndM1",
+            ReactionTime = 0.16
+        },
+        ["rbxassetid://121315597867666"] = {
             DisplayName = "3rdM1",
             ReactionTime = 0.16
         },
@@ -355,11 +377,11 @@ local ParryFailed = {"rbxassetid://4210597123"} -- BlockHit
 
 local AutoParryRange = 10
 local MaxCycleRange = 20
-local ParryWindow = 0.3
+local ParryWindow = 0.2
 local ProbabilityToParry = 100
 local DefaultReactionTime = 0.1
 local ParryOffset = 0
-local BlockHoldTime = 0.3
+local BlockHoldTime = 0.2
 
 
 -- ==========================================
@@ -514,7 +536,7 @@ local function LiteGrabber(Folder)
     setclipboard(Output)
     print(Output)
 end
---LiteGrabber(game.ReplicatedStorage.Assets.Anims.Weapon.Spear)
+LiteGrabber(game.ReplicatedStorage.Animations.Combat.WingChunAnims)
 
 local function UpdateSliders(OldReactionTime)
     for animationId, Info in (GameConfig) do 
@@ -1681,7 +1703,7 @@ local function CheckAnimationDirection(character, localCharacter, localRoot, tar
     local isHeavy = attackConfig.DisplayName == "M2" or attackConfig.DisplayName == "Heavy" or attackConfig.Heavy
   --  print(distance)
     
-    if not isHeavy and distance > 4 then  
+    if not isHeavy then -- and distance > 4 then  
         if TargetFacingYou.Get() and targetRoot.CFrame.LookVector:Dot(-direction) < 0.1 then return false end
         if YouFacingTarget.Get() and localRoot.CFrame.LookVector:Dot(direction) < 0.1 then return false end
     end
@@ -1747,6 +1769,8 @@ local function EvaluateAnimation(anim, character, localCharacter, localRoot, tar
     local now = os.clock()
     local regData = UpdateAnimationRegistry(animKey, anim, now, anim.TimePosition or 0, attackConfig, character)
     if regData.Processed then return end
+
+    if CheckCharacterDistance(localRoot, targetRoot) > AutoParryRange then return end
     
     -- PARRY FUNCTION OVERRIDE
     if attackConfig.ParryFunction and (now - regData.StartTime) <= (attackConfig.ReactionTime or DefaultReactionTime) + ParryWindow/2 then
@@ -1771,7 +1795,9 @@ local function EvaluateAnimation(anim, character, localCharacter, localRoot, tar
     end
     
     -- PARRY EXECUTION
-    if now >= regData.BlockStart and now <= regData.BlockExpire then
+    local BlockExpireTimer = regData.BlockExpire - now
+    
+    if now >= regData.BlockStart and BlockExpireTimer >= 0 then
     --    if not LastPendingRegData or LastPendingRegData.Proc then
             ExecuteParry(regData, attackConfig)
     --    end
@@ -1785,8 +1811,7 @@ local function EvaluateCharacter(character, localCharacter, localRoot, currentAc
     
     -- CHARACTER DISTANCE & ESP
     local Distance = CheckCharacterDistance(localRoot, targetRoot)
-    if not UpdateCharacterESP(character, Distance) then return end
-    
+    UpdateCharacterESP(character, Distance)    
     -- ANIMATION LOOP
     local activeAnimations = AnimationTracker:Update(character)
     if not activeAnimations or #activeAnimations == 0 then return end
