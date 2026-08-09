@@ -292,8 +292,8 @@ local GameConfig = {
             ReactionTime = 0.16
         },
         ["rbxassetid://102407060635393"] = {
-            DisplayName = "M2",
-            ["ReactionTime"] = 0.02,
+            DisplayName = "Ook",
+            ["ReactionTime"] = 0.1,
         },
         ["rbxassetid://82904229252991"] = {
             DisplayName = "1stM1",
@@ -381,7 +381,7 @@ local ParryWindow = 0.2
 local ProbabilityToParry = 100
 local DefaultReactionTime = 0.1
 local ParryOffset = 0
-local BlockHoldTime = 0.2
+local BlockHoldTime = 0.27
 
 
 -- ==========================================
