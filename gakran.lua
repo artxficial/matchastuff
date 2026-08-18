@@ -13,7 +13,7 @@ local ImportESP = loadstring(game:HttpGet(URL))()
 local URL = "https://raw.githubusercontent.com/artxficial/matchastuff/main/animationtracker.lua"
 local ImportAnimationTracker = loadstring(game:HttpGet(URL))()
 
-local UI_Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/neaxusxgod-png/INS-ui/main/uilib.min.lua"))() or INSui
+local UI_Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/artxficial/INS-ui/main/uilib.min.lua"))() or INSui
 
 local AnimationsLoggedCache = {}
 local AnimationsLoggedOrder = {}
