@@ -2,17 +2,34 @@ local OffsetsJSON = game:HttpGet("https://offsets.ntgetwritewatch.workers.dev/of
 local HttpService = game:GetService("HttpService")
 local Offsets = HttpService:JSONDecode(OffsetsJSON)
 
-local TheoOffsets = HttpService:JSONDecode(game:HttpGet("https://imtheo.lol/Offsets/Offsets.json")).Offsets
+local offsets
+
+for _, url in ipairs({"https://offsets.imtheo.lol/Offsets.json", "https://artxficial.dev/misc/theo"}) do
+    local success, result = pcall(function() 
+        local data = HttpService:JSONDecode(game:HttpGet(url)) 
+        return data.Offsets or data 
+    end)
+    
+    if success and type(result) == "table" and next(result) then
+        print("[DEBUG] Successfully using offsets from: " .. url)
+        offsets = result
+        break
+    end
+end
+
+offsets = offsets or (print("[DEBUG] Both endpoints failed. Defaulting to empty table.") or {})
+
+TheoOffsets = offsets
 
 local PlayerGui = game.Players.LocalPlayer:WaitForChild("PlayerGui")
 local CombatScreenGui = PlayerGui:WaitForChild("Combat")
 local RunService = game:GetService("RunService")
 
 local QTE_UI = {
-    ["BlockingQTE"] = {
-        ["QTE_Container"] = CombatScreenGui.Block,
-        ["Indicator"] = CombatScreenGui.Block.Inset.Indicator, 		-- what needs to align
-        ["Target"] =  CombatScreenGui.Block.Inset.Dodge,				-- where it needs to align
+    ["DodgeQTE"] = {
+        ["QTE_Container"] = CombatScreenGui.DodgeQTE,
+        ["Indicator"] = CombatScreenGui.DodgeQTE.Inset.Indicator, 		-- what needs to align
+        ["Target"] =  CombatScreenGui.DodgeQTE.Inset.Dodge,				-- where it needs to align
         ["LastVisibleTime"] = nil,
         ["Debounce"] = 0,
         ["IsRunning"] = false,
@@ -83,7 +100,7 @@ end
 local function IsScreenGuiEnabled(ScreenGui)
     if not ScreenGui then return end 
 
-    local Status = memory_read("byte", ScreenGui.Address + Offsets.ScreenGuiEnabled)
+    local Status = memory_read("byte", ScreenGui.Address + TheoOffsets.GuiObject.ScreenGui_Enabled)
     local ScreenGuiEnabled = tonumber(Status) ~= 0
     return ScreenGuiEnabled
 end
@@ -91,7 +108,7 @@ end
 local function IsFrameVisible(Frame)
     if not Frame then return end 
 
-    local Status = memory_read("byte", Frame.Address + Offsets.FrameVisible)
+    local Status = memory_read("byte", Frame.Address + TheoOffsets.GuiObject.Visible)
     local IsVisible = tonumber(Status) ~= 0
     return IsVisible
 end
@@ -456,19 +473,19 @@ local function DoBlockBar(Indicator, Target)
     local IsAligned, Distance = AreUIObjectsAligned(Indicator, Target)
     
     -- Method for detecting new run by @haru_ty
-    local IndicatorPositionX = memory_read('float', Indicator.Address + Offsets.FramePositionX)
+    local IndicatorPositionX = memory_read('float', Indicator.Address + TheoOffsets.GuiObject.Position)
     if IndicatorPositionX < 0.1 then  
         --print("Thats too fast")
         return
     end
 
-    local Cooldown = tick() < QTE_UI.BlockingQTE.Debounce
+    local Cooldown = tick() < QTE_UI.DodgeQTE.Debounce
 
     if IsAligned and not Cooldown then 
-        QTE_UI.BlockingQTE.Debounce = tick() + 1
+        QTE_UI.DodgeQTE.Debounce = tick() + 1
         print("just pressed space", Distance) 
         PressKey(32)
-        QTE_UI.BlockingQTE.LastVisibleTime = nil
+        QTE_UI.DodgeQTE.LastVisibleTime = nil
     end
 end
 
@@ -825,9 +842,8 @@ local function CombatLoop()
                         if QTE_Type == "FistQTE" then
                             task.wait(0.2)
                             DoFistQTE(Data.KeyHolder)
-                        elseif QTE_Type == "BlockingQTE" then
-                            memory_write("float", CombatScreenGui.Block.Inset.Block.Address + Offsets.FrameSizeX, 1.5)
-
+                        elseif QTE_Type == "DodgeQTE" then
+                          --  memory_write("float", CombatScreenGui.Block.Inset.Block.Address + Offsets.FrameSizeX, 1.5)
                             DoBlockBar(Data.Indicator, Data.Target)
                         elseif QTE_Type == "MagicQTE" then
                             DoMagicQTE(Data.RuneSlots, Data.RunePieces)
