@@ -28,11 +28,13 @@ function Box.new(cframe, color, size, thickness)
 	local self = setmetatable({}, Box)
 
 	self.CFrame = cframe
+	self.Offset = CFrame.new() -- local-space offset, applied relative to the box's rotation
 	self.Color = color or Color3.new(1, 1, 1)
 	self.Size = size or Vector3.new(4, 4, 4)
 	self.Thickness = thickness or 1
 	self.Visible = true
-	self.Adornee = nil -- optional: set to a part to follow its CFrame and Size
+	self.Adornee = nil -- optional: part to follow every frame
+	self.MatchAdorneeSize = false -- if true, also copies the part's Size
 
 	self.Lines = {}
 	for i = 1, #EDGES do
@@ -49,6 +51,33 @@ end
 
 function Box:SetCFrame(cframe)
 	self.CFrame = cframe
+end
+
+-- offset is a CFrame in the box's local space:
+--   CFrame.new(0, 0, -5)                     -> 5 studs in front
+--   CFrame.new(0, 3, 0)                      -> 3 studs up
+--   CFrame.new(0, 0, -5) * CFrame.Angles(0, math.rad(45), 0) -> in front and turned 45 degrees
+function Box:SetOffset(offset)
+	self.Offset = offset
+end
+
+-- Follow a part every frame (CFrame only unless matchSize is true)
+function Box:Attach(part, matchSize)
+	self.Adornee = part
+	self.MatchAdorneeSize = matchSize or false
+end
+
+function Box:Detach()
+	if self.Adornee then
+		self.CFrame = self.Adornee.CFrame
+	end
+	self.Adornee = nil
+end
+
+-- The final CFrame the box is drawn and tested at (base CFrame * offset)
+function Box:GetCFrame()
+	local base = self.Adornee and self.Adornee.CFrame or self.CFrame
+	return base * self.Offset
 end
 
 function Box:SetSize(size)
@@ -83,18 +112,19 @@ function Box:Update()
 		return
 	end
 
-	-- Follow a part if one is attached
 	if self.Adornee then
 		if not self.Adornee.Parent then
 			self:Destroy()
 			return
 		end
 		self.CFrame = self.Adornee.CFrame
-		self.Size = self.Adornee.Size
+		if self.MatchAdorneeSize then
+			self.Size = self.Adornee.Size
+		end
 	end
 
 	local half = self.Size / 2
-	local cf = self.CFrame
+	local cf = self:GetCFrame()
 
 	-- Transform each local corner by the CFrame (this applies rotation),
 	-- then project it to the screen
@@ -121,9 +151,9 @@ function Box:Update()
 	end
 end
 
--- Returns true if a world position is inside the box (rotation included)
+-- Returns true if a world position is inside the box (rotation and offset included)
 function Box:ContainsPoint(position)
-	local localPos = self.CFrame:Inverse() * position
+	local localPos = self:GetCFrame():Inverse() * position
 	local half = self.Size / 2
 	return math.abs(localPos.X) <= half.X
 		and math.abs(localPos.Y) <= half.Y
@@ -140,9 +170,7 @@ local function characterIntersects(self, character)
 	return false
 end
 
--- Returns an array of character models inside the box, plus an array of
--- the matching players (same order; NPCs have no player entry).
--- Pass true to also check NPCs (models with a Humanoid directly in workspace).
+-- Takes a table of possible character models and returns the ones inside the box
 function Box:GetIntersectingCharacters(possibleCharacters)
 	local characters = {}
 
@@ -169,7 +197,7 @@ RunService.RenderStepped:Connect(function()
 	end
 end)
 
-print("[HitboxLibrary] Functions were imported v 1.0")
+print("[HitboxLibrary] Functions were imported v 1.1")
 
 _G.HitboxLibrary = Box
 
