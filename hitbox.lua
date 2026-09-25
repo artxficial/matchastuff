@@ -169,4 +169,8 @@ RunService.RenderStepped:Connect(function()
 	end
 end)
 
+print("[HitboxLibrary] Functions were imported v 1.0")
+
+_G.HitboxLibrary = Box
+
 return Box
