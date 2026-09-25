@@ -28,7 +28,7 @@ function Box.new(cframe, color, size, thickness)
 	local self = setmetatable({}, Box)
 
 	self.CFrame = cframe
-	self.Offset = CFrame.new() -- local-space offset, applied relative to the box's rotation
+	self.Offset = Vector3.new(0, 0, 0) -- local-space offset: X = right, Y = up, Z = back (-Z = forward)
 	self.Color = color or Color3.new(1, 1, 1)
 	self.Size = size or Vector3.new(4, 4, 4)
 	self.Thickness = thickness or 1
@@ -53,10 +53,10 @@ function Box:SetCFrame(cframe)
 	self.CFrame = cframe
 end
 
--- offset is a CFrame in the box's local space:
---   CFrame.new(0, 0, -5)                     -> 5 studs in front
---   CFrame.new(0, 3, 0)                      -> 3 studs up
---   CFrame.new(0, 0, -5) * CFrame.Angles(0, math.rad(45), 0) -> in front and turned 45 degrees
+-- offset is a Vector3 in the box's local space (relative to its rotation):
+--   Vector3.new(0, 0, -5) -> 5 studs in front
+--   Vector3.new(0, 3, 0)  -> 3 studs up
+--   Vector3.new(3, 0, 0)  -> 3 studs to the right
 function Box:SetOffset(offset)
 	self.Offset = offset
 end
@@ -74,10 +74,24 @@ function Box:Detach()
 	self.Adornee = nil
 end
 
--- The final CFrame the box is drawn and tested at (base CFrame * offset)
-function Box:GetCFrame()
+local function dot(a, b)
+	return a.X * b.X + a.Y * b.Y + a.Z * b.Z
+end
+
+-- Returns the box's center and its three local axes in world space.
+-- Built from RightVector/UpVector/LookVector instead of CFrame * Vector3,
+-- so it doesn't depend on how the environment implements CFrame math.
+function Box:GetAxes()
 	local base = self.Adornee and self.Adornee.CFrame or self.CFrame
-	return base * self.Offset
+
+	local right = base.RightVector
+	local up = base.UpVector
+	local back = -base.LookVector
+
+	local o = self.Offset
+	local center = base.Position + right * o.X + up * o.Y + back * o.Z
+
+	return center, right, up, back
 end
 
 function Box:SetSize(size)
@@ -124,14 +138,17 @@ function Box:Update()
 	end
 
 	local half = self.Size / 2
-	local cf = self:GetCFrame()
+	local center, right, up, back = self:GetAxes()
 
-	-- Transform each local corner by the CFrame (this applies rotation),
+	-- Build each corner from the box's own axes (this applies rotation),
 	-- then project it to the screen
 	local screen = {}
 	local onScreen = {}
 	for i, sign in ipairs(CORNERS) do
-		local worldPos = cf * (sign * half)
+		local worldPos = center
+			+ right * (sign.X * half.X)
+			+ up * (sign.Y * half.Y)
+			+ back * (sign.Z * half.Z)
 		screen[i], onScreen[i] = WorldToScreen(worldPos)
 	end
 
@@ -153,11 +170,12 @@ end
 
 -- Returns true if a world position is inside the box (rotation and offset included)
 function Box:ContainsPoint(position)
-	local localPos = self:GetCFrame():Inverse() * position
+	local center, right, up, back = self:GetAxes()
+	local rel = position - center
 	local half = self.Size / 2
-	return math.abs(localPos.X) <= half.X
-		and math.abs(localPos.Y) <= half.Y
-		and math.abs(localPos.Z) <= half.Z
+	return math.abs(dot(rel, right)) <= half.X
+		and math.abs(dot(rel, up)) <= half.Y
+		and math.abs(dot(rel, back)) <= half.Z
 end
 
 -- A character counts as intersecting if any of its parts' centers is inside the box
@@ -197,7 +215,7 @@ RunService.RenderStepped:Connect(function()
 	end
 end)
 
-print("[HitboxLibrary] Functions were imported v 1.1")
+print("[HitboxLibrary] Functions were imported v 1.2")
 
 _G.HitboxLibrary = Box
 
