@@ -98,6 +98,14 @@ function Box:SetSize(size)
 	self.Size = size
 end
 
+function Box:ClientInHitbox()
+	local character = Players.LocalPlayer.Character
+	if not character then
+		return false
+	end
+	return characterIntersects(self, character)
+end
+
 function Box:SetColor(color)
 	self.Color = color
 	for _, line in ipairs(self.Lines) do
