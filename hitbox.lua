@@ -98,13 +98,6 @@ function Box:SetSize(size)
 	self.Size = size
 end
 
-function Box:ClientInHitbox()
-	local character = Players.LocalPlayer.Character
-	if not character then
-		return false
-	end
-	return characterIntersects(self, character)
-end
 
 function Box:SetColor(color)
 	self.Color = color
@@ -207,6 +200,14 @@ function Box:GetIntersectingCharacters(possibleCharacters)
 	end
 
 	return characters
+end
+
+function Box:ClientInHitbox()
+	local character = Players.LocalPlayer.Character
+	if not character then
+		return false
+	end
+	return characterIntersects(self, character)
 end
 
 function Box:Destroy()
